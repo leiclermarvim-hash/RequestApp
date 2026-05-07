@@ -4,106 +4,35 @@
     <meta charset="UTF-8">
     <title>FAST REQUEST PRO</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
         :root {
-            --bg1:#0a0f2c;
-            --bg2:#020417;
-            --glass:rgba(255,255,255,.08);
-            --accent:#00ffe0;
-            --primary:#0066ff;
+            --bg1:#0a0f2c; --bg2:#020417; --glass:rgba(255,255,255,.08);
+            --accent:#00ffe0; --primary:#0066ff;
         }
-
         * { box-sizing:border-box; }
-
         body{
-            margin:0;
-            font-family:Segoe UI,Roboto,sans-serif;
+            margin:0; font-family:Segoe UI,Roboto,sans-serif;
             background:radial-gradient(circle at top,var(--bg1),var(--bg2));
-            color:#fff;
-            overflow-x: hidden;
+            color:#fff; overflow-x: hidden;
         }
-
-        .screen{
-            display:none;
-            min-height:100vh;
-            justify-content:center;
-            align-items:center;
-            padding: 20px;
-        }
+        .screen{ display:none; min-height:100vh; justify-content:center; align-items:center; padding: 20px; }
         .screen.active{ display:flex; }
-
         .card{
-            width:100%;
-            max-width:380px;
-            padding:30px;
-            border-radius:20px;
-            background:var(--glass);
-            backdrop-filter: blur(14px);
-            text-align:center;
-            box-shadow:0 0 30px rgba(0,255,255,.25);
-            border: 1px solid rgba(255,255,255,0.1);
+            width:100%; max-width:380px; padding:30px; border-radius:20px;
+            background:var(--glass); backdrop-filter: blur(14px); text-align:center;
+            box-shadow:0 0 30px rgba(0,255,255,.25); border: 1px solid rgba(255,255,255,0.1);
         }
-
-        input, button{
-            width:100%;
-            padding:14px;
-            margin-top:15px;
-            border:none;
-            border-radius:12px;
-            font-size:15px;
-            outline: none;
-        }
-
-        input {
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-        }
-
-        button{
-            background:linear-gradient(135deg,var(--accent),var(--primary));
-            font-weight:700;
-            cursor:pointer;
-            color:#000;
-            transition: transform 0.2s;
-        }
-
-        button:active { transform: scale(0.98); }
-
-        .menu{
-            width:100%;
-            max-width:600px;
-        }
-
-        .menu h3{
-            text-align:center;
-            margin-bottom:20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .menu-grid{
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:15px;
-        }
-
-        .menu-grid button{
-            padding:22px;
-            font-size: 14px;
-        }
-
-        footer{
-            position:fixed;
-            bottom:10px;
-            width:100%;
-            text-align:center;
-            font-size:11px;
-            color:#aaa;
-            pointer-events: none;
-        }
+        input, button{ width:100%; padding:14px; margin-top:15px; border:none; border-radius:12px; font-size:15px; outline: none; }
+        input { background: rgba(255,255,255,0.1); color: #fff; }
+        button{ background:linear-gradient(135deg,var(--accent),var(--primary)); font-weight:700; cursor:pointer; color:#000; }
+        .menu{ width:100%; max-width:600px; }
+        .menu h3{ text-align:center; margin-bottom:20px; text-transform: uppercase; }
+        .menu-grid{ display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+        .lista-container { margin-top:20px; max-height:400px; overflow-y:auto; text-align:left; padding-right: 5px; }
+        .item-estoque { padding:12px; background:rgba(255,255,255,0.05); border-radius:10px; margin-bottom:8px; border-left: 4px solid var(--accent); }
+        footer{ position:fixed; bottom:10px; width:100%; text-align:center; font-size:11px; color:#aaa; pointer-events: none; }
     </style>
 </head>
 
@@ -112,7 +41,7 @@
     <div id="screen-login" class="screen active">
         <div class="card">
             <h2>FAST REQUEST PRO</h2>
-            <p style="font-size: 13px; color: var(--accent);">Autenticação Vercel</p>
+            <p style="font-size: 12px; color: var(--accent);">Acesso ao RequestApp</p>
             <input id="login_mat" type="text" placeholder="Matrícula">
             <input id="login_pass" type="password" placeholder="Senha">
             <button id="btn-login" onclick="login()">Entrar</button>
@@ -121,9 +50,9 @@
 
     <div id="screen-role" class="screen">
         <div class="card">
-            <h3>Escolha seu Perfil</h3>
+            <h3>Selecione seu Perfil</h3>
             <button onclick="selecionarPerfil('solicitante')">SOLICITANTE</button>
-            <button onclick="selecionarPerfil('atendente')" style="background: #fff; color: #000; margin-top: 20px;">ATENDENTE</button>
+            <button onclick="selecionarPerfil('atendente')" style="background:#fff; color:#000; margin-top:15px;">ATENDENTE</button>
         </div>
     </div>
 
@@ -131,53 +60,41 @@
         <div class="menu">
             <h3 id="infoUsuario"></h3>
             <div class="menu-grid">
-                <button onclick="alert('Módulo OSM em desenvolvimento')">📋 OSM</button>
-                <button onclick="alert('Módulo Programada em desenvolvimento')">📆 Programada</button>
-                <button onclick="alert('Módulo Conversor em desenvolvimento')">🔁 Conversor</button>
-                <button onclick="alert('Módulo Solicitações em desenvolvimento')">📂 Solicitações</button>
+                <button onclick="abrirOSM()">📋 OSM</button>
+                <button onclick="alert('Em breve')">📆 Programada</button>
+                <button onclick="alert('Em breve')">🔁 Conversor</button>
+                <button onclick="alert('Em breve')">📂 Solicitações</button>
             </div>
             <button onclick="location.reload()" style="margin-top:30px; background:transparent; color:#ff4444; border:1px solid #ff4444;">Sair</button>
         </div>
     </div>
 
-    <footer>FAST REQUEST PRO • GitHub + Vercel (RequestApp)</footer>
+    <div id="screen-osm" class="screen">
+        <div class="menu">
+            <h3>Consultar MB52</h3>
+            <input type="text" id="buscaMaterial" placeholder="Cód. Sap ou Descrição..." oninput="filtrarEstoque()">
+            <div id="listaProdutos" class="lista-container"></div>
+            <button onclick="mudarTela('screen-menu')" style="margin-top:20px; background:#444; color:#fff;">Voltar</button>
+        </div>
+    </div>
+
+    <footer>FAST REQUEST PRO • v15.6.0 • GitHub + Vercel</footer>
 
 <script>
-// ==============================
-// CONFIGURAÇÕES E ENDEREÇOS (REPOSITÓRIO RequestApp)
-// ==============================
 const GITHUB_ESTOQUE = "https://raw.githubusercontent.com/leiclermarvim/RequestApp/main/base_dados/MB52.XLSX";
+let appState = { usuario: null, perfil: null, dadosUsuario: null, estoque: [] };
 
-// ==============================
-// ESTADO GLOBAL DO APP
-// ==============================
-let appState = {
-    usuario: null,
-    perfil: null,
-    dadosUsuario: null,
-    estoque: []
-};
-
-// ==============================
-// NAVEGAÇÃO ENTRE TELAS
-// ==============================
 function mudarTela(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
 }
 
-// ==============================
-// LÓGICA DE AUTENTICAÇÃO (API VERCEL + CSV)
-// ==============================
 async function login() {
     const mat = document.getElementById('login_mat').value;
     const pass = document.getElementById('login_pass').value;
     const btn = document.getElementById('btn-login');
-
-    if (!mat || !pass) return alert("Preencha todos os campos!");
-
-    btn.innerText = "Autenticando...";
-    btn.disabled = true;
+    if (!mat || !pass) return alert("Preencha os campos!");
+    btn.innerText = "Validando...";
 
     try {
         const response = await fetch('/api/login', {
@@ -185,70 +102,77 @@ async function login() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ usuario: mat, senha: pass })
         });
-
         const res = await response.json();
-
         if (res.authenticated) {
             appState.usuario = mat;
-            appState.dadosUsuario = res.user; // Guarda os dados vindos do CSV
+            appState.dadosUsuario = res.user;
             mudarTela('screen-role');
         } else {
-            alert("Matrícula ou Senha inválidos!");
+            alert("Erro na autenticação!");
             btn.innerText = "Entrar";
-            btn.disabled = false;
         }
-    } catch (e) {
-        console.error("Erro na API:", e);
-        alert("Erro técnico ao conectar com o servidor Vercel.");
-        btn.innerText = "Entrar";
-        btn.disabled = false;
-    }
+    } catch (e) { alert("Erro de conexão."); btn.innerText = "Entrar"; }
 }
 
-// ==============================
-// SELEÇÃO DE PERFIL E CARREGAMENTO
-// ==============================
 function selecionarPerfil(tipo) {
     appState.perfil = tipo;
-    const nomeUser = appState.dadosUsuario ? appState.dadosUsuario.nome : appState.usuario;
-    document.getElementById('infoUsuario').innerText = `Olá, ${nomeUser} | Perfil: ${tipo}`;
-    
+    document.getElementById('infoUsuario').innerText = `Olá, ${appState.dadosUsuario?.nome || appState.usuario}`;
     mudarTela('screen-menu');
     carregarEstoqueBase();
 }
 
-// ==============================
-// LEITURA DO EXCEL (SNAPSHOT MB52.XLSX)
-// ==============================
 async function carregarEstoqueBase() {
     try {
         const response = await fetch(GITHUB_ESTOQUE);
-        if (!response.ok) throw new Error("Não foi possível acessar o MB52.XLSX no GitHub.");
-        
         const arrayBuffer = await response.arrayBuffer();
         const data = new Uint8Array(arrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
-        
         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonEstoque = XLSX.utils.sheet_to_json(worksheet);
         
-        // Mapeamento baseado nas colunas reais do MB52
-        appState.estoque = jsonEstoque.map(item => ({
+        // Converte para matriz para encontrar o cabeçalho real
+        const range = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        
+        // LOCALIZA A LINHA DO CABEÇALHO (Onde está escrito "Material")
+        let indiceCabecalho = range.findIndex(linha => linha.includes("Material"));
+        
+        // Transforma em JSON a partir da linha correta
+        const dadosBrutos = XLSX.utils.sheet_to_json(worksheet, { range: indiceCabecalho });
+
+        appState.estoque = dadosBrutos.map(item => ({
             codigo: item["Material"],
             descricao: item["Texto breve material"],
             saldo: parseFloat(item["Utilização livre"]) || 0,
             unidade: item["Unid.medida básica"],
-            centro: item["Centro"],
             deposito: item["Depósito"]
-        }));
-        
-        console.log("Base MB52 Carregada com sucesso.");
-    } catch (e) {
-        console.error("Erro no processamento dos dados:", e);
-        alert("Erro ao carregar base de estoque. Verifique o arquivo no repositório RequestApp.");
-    }
+        })).filter(i => i.codigo); // Remove linhas vazias
+
+        console.log("Estoque carregado com sucesso!");
+    } catch (e) { console.error(e); }
+}
+
+function abrirOSM() { mudarTela('screen-osm'); filtrarEstoque(); }
+
+function filtrarEstoque() {
+    const termo = document.getElementById('buscaMaterial').value.toLowerCase();
+    const lista = document.getElementById('listaProdutos');
+    lista.innerHTML = "";
+
+    const filtrados = appState.estoque.filter(i => 
+        (i.codigo && i.codigo.toString().toLowerCase().includes(termo)) || 
+        (i.descricao && i.descricao.toLowerCase().includes(termo))
+    );
+
+    filtrados.slice(0, 50).forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'item-estoque';
+        div.innerHTML = `
+            <div style="font-weight:bold; color:var(--accent);">${item.codigo}</div>
+            <div style="font-size:13px; margin: 4px 0;">${item.descricao}</div>
+            <div style="font-size:12px; color:#aaa;">Saldo: <b>${item.saldo}</b> ${item.unidade} | Dep: ${item.deposito}</div>
+        `;
+        lista.appendChild(div);
+    });
 }
 </script>
-
 </body>
 </html>
