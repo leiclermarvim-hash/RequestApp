@@ -78,10 +78,11 @@
         </div>
     </div>
 
-    <footer>FAST REQUEST PRO • v15.6.0 • GitHub + Vercel</footer>
+    <footer>FAST REQUEST PRO • v15.6.1 • GitHub + Vercel</footer>
 
 <script>
-const GITHUB_ESTOQUE = "const GITHUB_ESTOQUE = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX";
+// CORREÇÃO: Removida a duplicação e as aspas extras que travavam o código
+const GITHUB_ESTOQUE = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX";
 let appState = { usuario: null, perfil: null, dadosUsuario: null, estoque: [] };
 
 function mudarTela(id) {
@@ -129,13 +130,12 @@ async function carregarEstoqueBase() {
         const workbook = XLSX.read(data, { type: 'array' });
         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
         
-        // Converte para matriz para encontrar o cabeçalho real
         const range = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
         
-        // LOCALIZA A LINHA DO CABEÇALHO (Onde está escrito "Material")
-        let indiceCabecalho = range.findIndex(linha => linha.includes("Material"));
+        // Busca a linha onde o SAP começa os dados
+        let indiceCabecalho = range.findIndex(linha => linha && linha.includes("Material"));
+        if (indiceCabecalho === -1) indiceCabecalho = 0;
         
-        // Transforma em JSON a partir da linha correta
         const dadosBrutos = XLSX.utils.sheet_to_json(worksheet, { range: indiceCabecalho });
 
         appState.estoque = dadosBrutos.map(item => ({
@@ -144,10 +144,10 @@ async function carregarEstoqueBase() {
             saldo: parseFloat(item["Utilização livre"]) || 0,
             unidade: item["Unid.medida básica"],
             deposito: item["Depósito"]
-        })).filter(i => i.codigo); // Remove linhas vazias
+        })).filter(i => i.codigo);
 
-        console.log("Estoque carregado com sucesso!");
-    } catch (e) { console.error(e); }
+        console.log("Estoque carregado!");
+    } catch (e) { console.error("Erro ao ler MB52:", e); }
 }
 
 function abrirOSM() { mudarTela('screen-osm'); filtrarEstoque(); }
