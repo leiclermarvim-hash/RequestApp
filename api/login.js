@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   const { usuario, senha } = req.body;
-  const URL_CSV = "https://raw.githubusercontent.com/leiclermarvim/RequestApp/main/configuracoes/usuarios.csv";
+  const URL_CSV = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/refs/heads/main/configuracoes/usuarios.csv";
 
   try {
     const response = await fetch(URL_CSV);
