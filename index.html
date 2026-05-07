@@ -140,13 +140,13 @@
         </div>
     </div>
 
-    <footer>FAST REQUEST PRO • v15.5.2 • GitHub + Vercel</footer>
+    <footer>FAST REQUEST PRO • GitHub + Vercel (RequestApp)</footer>
 
 <script>
 // ==============================
-// CONFIGURAÇÕES E ENDEREÇOS
+// CONFIGURAÇÕES E ENDEREÇOS (REPOSITÓRIO RequestApp)
 // ==============================
-const GITHUB_ESTOQUE = "https://raw.githubusercontent.com/leiclermarvim/fast-request-data/main/base_dados/estoque.xlsx";
+const GITHUB_ESTOQUE = "https://raw.githubusercontent.com/leiclermarvim/RequestApp/main/base_dados/MB52.XLSX";
 
 // ==============================
 // ESTADO GLOBAL DO APP
@@ -154,6 +154,7 @@ const GITHUB_ESTOQUE = "https://raw.githubusercontent.com/leiclermarvim/fast-req
 let appState = {
     usuario: null,
     perfil: null,
+    dadosUsuario: null,
     estoque: []
 };
 
@@ -166,7 +167,7 @@ function mudarTela(id) {
 }
 
 // ==============================
-// LÓGICA DE AUTENTICAÇÃO (API VERCEL)
+// LÓGICA DE AUTENTICAÇÃO (API VERCEL + CSV)
 // ==============================
 async function login() {
     const mat = document.getElementById('login_mat').value;
@@ -179,7 +180,6 @@ async function login() {
     btn.disabled = true;
 
     try {
-        // Chamada para a Serverless Function na pasta /api/login.js
         const response = await fetch('/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -190,6 +190,7 @@ async function login() {
 
         if (res.authenticated) {
             appState.usuario = mat;
+            appState.dadosUsuario = res.user; // Guarda os dados vindos do CSV
             mudarTela('screen-role');
         } else {
             alert("Matrícula ou Senha inválidos!");
@@ -209,34 +210,42 @@ async function login() {
 // ==============================
 function selecionarPerfil(tipo) {
     appState.perfil = tipo;
-    document.getElementById('infoUsuario').innerText = `Matrícula: ${appState.usuario} | Perfil: ${tipo}`;
+    const nomeUser = appState.dadosUsuario ? appState.dadosUsuario.nome : appState.usuario;
+    document.getElementById('infoUsuario').innerText = `Olá, ${nomeUser} | Perfil: ${tipo}`;
     
     mudarTela('screen-menu');
     carregarEstoqueBase();
 }
 
 // ==============================
-// LEITURA DO EXCEL (SNAPSHOT MB52)
+// LEITURA DO EXCEL (SNAPSHOT MB52.XLSX)
 // ==============================
 async function carregarEstoqueBase() {
     try {
         const response = await fetch(GITHUB_ESTOQUE);
-        if (!response.ok) throw new Error("Não foi possível acessar o arquivo de estoque no GitHub.");
+        if (!response.ok) throw new Error("Não foi possível acessar o MB52.XLSX no GitHub.");
         
         const arrayBuffer = await response.arrayBuffer();
         const data = new Uint8Array(arrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
         
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonEstoque = XLSX.utils.sheet_to_json(worksheet);
         
-        // Converte Excel para objeto JSON
-        appState.estoque = XLSX.utils.sheet_to_json(worksheet);
+        // Mapeamento baseado nas colunas reais do MB52
+        appState.estoque = jsonEstoque.map(item => ({
+            codigo: item["Material"],
+            descricao: item["Texto breve material"],
+            saldo: parseFloat(item["Utilização livre"]) || 0,
+            unidade: item["Unid.medida básica"],
+            centro: item["Centro"],
+            deposito: item["Depósito"]
+        }));
         
-        console.log("Banco de Dados Base Pronto. Itens:", appState.estoque.length);
+        console.log("Base MB52 Carregada com sucesso.");
     } catch (e) {
         console.error("Erro no processamento dos dados:", e);
-        alert("Erro ao carregar base de estoque. Verifique a conexão com o GitHub.");
+        alert("Erro ao carregar base de estoque. Verifique o arquivo no repositório RequestApp.");
     }
 }
 </script>
