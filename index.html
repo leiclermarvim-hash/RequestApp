@@ -94,8 +94,11 @@ async function login() {
     const mat = document.getElementById('login_mat').value;
     const pass = document.getElementById('login_pass').value;
     const btn = document.getElementById('btn-login');
+    
     if (!mat || !pass) return alert("Preencha os campos!");
-    btn.innerText = "Validando...";
+    
+    btn.innerText = "Conectando...";
+    btn.disabled = true;
 
     try {
         const response = await fetch('/api/login', {
@@ -103,18 +106,31 @@ async function login() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ usuario: mat, senha: pass })
         });
+
+        // Se a Vercel retornar erro 404 ou 500
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `Erro no servidor (${response.status})`);
+        }
+
         const res = await response.json();
+        
         if (res.authenticated) {
             appState.usuario = mat;
             appState.dadosUsuario = res.user;
             mudarTela('screen-role');
         } else {
-            alert("Erro na autenticação!");
+            alert("Matrícula ou Senha inválidos!");
             btn.innerText = "Entrar";
+            btn.disabled = false;
         }
-    } catch (e) { alert("Erro de conexão."); btn.innerText = "Entrar"; }
+    } catch (e) {
+        console.error("Falha no Login:", e);
+        alert("Ocorreu um erro: " + e.message);
+        btn.innerText = "Entrar";
+        btn.disabled = false;
+    }
 }
-
 function selecionarPerfil(tipo) {
     appState.perfil = tipo;
     document.getElementById('infoUsuario').innerText = `Olá, ${appState.dadosUsuario?.nome || appState.usuario}`;
