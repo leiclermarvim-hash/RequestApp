@@ -1,154 +1,245 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>FAST REQUEST PRO</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>FAST REQUEST PRO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- SheetJS para leitura de Excel -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-<style>
-:root {
-  --bg1:#0a0f2c;
-  --bg2:#020417;
-  --glass:rgba(255,255,255,.08);
-  --accent:#00ffe0;
-  --primary:#0066ff;
-}
+    <style>
+        :root {
+            --bg1:#0a0f2c;
+            --bg2:#020417;
+            --glass:rgba(255,255,255,.08);
+            --accent:#00ffe0;
+            --primary:#0066ff;
+        }
 
-* { box-sizing:border-box; }
+        * { box-sizing:border-box; }
 
-body{
-  margin:0;
-  font-family:Segoe UI,Roboto,sans-serif;
-  background:radial-gradient(circle at top,var(--bg1),var(--bg2));
-  color:#fff;
-}
+        body{
+            margin:0;
+            font-family:Segoe UI,Roboto,sans-serif;
+            background:radial-gradient(circle at top,var(--bg1),var(--bg2));
+            color:#fff;
+            overflow-x: hidden;
+        }
 
-.screen{
-  display:none;
-  height:100vh;
-  justify-content:center;
-  align-items:center;
-}
-.screen.active{ display:flex; }
+        .screen{
+            display:none;
+            min-height:100vh;
+            justify-content:center;
+            align-items:center;
+            padding: 20px;
+        }
+        .screen.active{ display:flex; }
 
-.card{
-  width:90%;
-  max-width:380px;
-  padding:30px;
-  border-radius:20px;
-  background:var(--glass);
-  backdrop-filter: blur(14px);
-  text-align:center;
-  box-shadow:0 0 30px rgba(0,255,255,.25);
-}
+        .card{
+            width:100%;
+            max-width:380px;
+            padding:30px;
+            border-radius:20px;
+            background:var(--glass);
+            backdrop-filter: blur(14px);
+            text-align:center;
+            box-shadow:0 0 30px rgba(0,255,255,.25);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
 
-input,button{
-  width:100%;
-  padding:14px;
-  margin-top:10px;
-  border:none;
-  border-radius:12px;
-  font-size:15px;
-}
+        input, button{
+            width:100%;
+            padding:14px;
+            margin-top:15px;
+            border:none;
+            border-radius:12px;
+            font-size:15px;
+            outline: none;
+        }
 
-button{
-  background:linear-gradient(135deg,var(--accent),var(--primary));
-  font-weight:700;
-  cursor:pointer;
-  color:#000;
-}
+        input {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
 
-.menu{
-  width:90%;
-  max-width:600px;
-}
+        button{
+            background:linear-gradient(135deg,var(--accent),var(--primary));
+            font-weight:700;
+            cursor:pointer;
+            color:#000;
+            transition: transform 0.2s;
+        }
 
-.menu h3{
-  text-align:center;
-  margin-bottom:20px;
-}
+        button:active { transform: scale(0.98); }
 
-.menu-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:15px;
-}
+        .menu{
+            width:100%;
+            max-width:600px;
+        }
 
-.menu-grid button{
-  padding:22px;
-}
+        .menu h3{
+            text-align:center;
+            margin-bottom:20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-footer{
-  position:fixed;
-  bottom:10px;
-  width:100%;
-  text-align:center;
-  font-size:11px;
-  color:#aaa;
-}
-</style>
+        .menu-grid{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:15px;
+        }
+
+        .menu-grid button{
+            padding:22px;
+            font-size: 14px;
+        }
+
+        footer{
+            position:fixed;
+            bottom:10px;
+            width:100%;
+            text-align:center;
+            font-size:11px;
+            color:#aaa;
+            pointer-events: none;
+        }
+    </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div id="screen-login" class="screen active">
-  <div class="card">
-    <h2>FAST REQUEST PRO</h2>
-    <p>Autenticação Vecel</p>
-    <input id="login_mat" placeholder="Matrícula">
-    <input id="login_pass" type="password" placeholder="Senha">
-    <button onclick="login()">Entrar</button>
-  </div>
-</div>
-
-<!-- ROLE -->
-<div id="screen-role" class="screen">
-  <div class="card">
-    <h3>Você é:</h3>
-    <button onclick="selecionarPerfil('solicitante')">Solicitante</button>
-    <button onclick="selecionarPerfil('atendente')">Atendente</button>
-  </div>
-</div>
-
-<!-- MENU -->
-<div id="screen-menu" class="screen">
-  <div class="menu">
-    <h3 id="infoUsuario"></h3>
-    <div class="menu-grid">
-      <button onclick="abrirOSM()">📋 OSM</button>
-      <button onclick="abrirProgramada()">📆 Programada</button>
-      <button onclick="abrirConversor()">🔁 Conversor</button>
-      <button onclick="abrirSolicitacoes()">📂 Solicitações</button>
+    <div id="screen-login" class="screen active">
+        <div class="card">
+            <h2>FAST REQUEST PRO</h2>
+            <p style="font-size: 13px; color: var(--accent);">Autenticação Vercel</p>
+            <input id="login_mat" type="text" placeholder="Matrícula">
+            <input id="login_pass" type="password" placeholder="Senha">
+            <button id="btn-login" onclick="login()">Entrar</button>
+        </div>
     </div>
-  </div>
-</div>
 
-<footer>FAST REQUEST PRO • GitHub + Vercel</footer>
+    <div id="screen-role" class="screen">
+        <div class="card">
+            <h3>Escolha seu Perfil</h3>
+            <button onclick="selecionarPerfil('solicitante')">SOLICITANTE</button>
+            <button onclick="selecionarPerfil('atendente')" style="background: #fff; color: #000; margin-top: 20px;">ATENDENTE</button>
+        </div>
+    </div>
+
+    <div id="screen-menu" class="screen">
+        <div class="menu">
+            <h3 id="infoUsuario"></h3>
+            <div class="menu-grid">
+                <button onclick="alert('Módulo OSM em desenvolvimento')">📋 OSM</button>
+                <button onclick="alert('Módulo Programada em desenvolvimento')">📆 Programada</button>
+                <button onclick="alert('Módulo Conversor em desenvolvimento')">🔁 Conversor</button>
+                <button onclick="alert('Módulo Solicitações em desenvolvimento')">📂 Solicitações</button>
+            </div>
+            <button onclick="location.reload()" style="margin-top:30px; background:transparent; color:#ff4444; border:1px solid #ff4444;">Sair</button>
+        </div>
+    </div>
+
+    <footer>FAST REQUEST PRO • v15.5.2 • GitHub + Vercel</footer>
 
 <script>
 // ==============================
-// CONFIGURAÇÕES
+// CONFIGURAÇÕES E ENDEREÇOS
 // ==============================
-const GITHUB_USUARIOS =
- "https://raw.githubusercontent.com/leiclermarvim/fast-request-data/main/configuracoes/usuarios.json";
-
-const GITHUB_ESTOQUE =
- "https://raw.githubusercontent.com/leiclermarvim/fast-request-data/main/base_dados/estoque.xlsx";
+const GITHUB_ESTOQUE = "https://raw.githubusercontent.com/leiclermarvim/fast-request-data/main/base_dados/estoque.xlsx";
 
 // ==============================
-// ESTADO GLOBAL
+// ESTADO GLOBAL DO APP
 // ==============================
 let appState = {
-  usuario:null,
-  perfil:null,
-  centro:null,
-  estoque:[]
+    usuario: null,
+    perfil: null,
+    estoque: []
 };
 
 // ==============================
-// CONTROLE DE TELAS
+// NAVEGAÇÃO ENTRE TELAS
 // ==============================
+function mudarTela(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+// ==============================
+// LÓGICA DE AUTENTICAÇÃO (API VERCEL)
+// ==============================
+async function login() {
+    const mat = document.getElementById('login_mat').value;
+    const pass = document.getElementById('login_pass').value;
+    const btn = document.getElementById('btn-login');
+
+    if (!mat || !pass) return alert("Preencha todos os campos!");
+
+    btn.innerText = "Autenticando...";
+    btn.disabled = true;
+
+    try {
+        // Chamada para a Serverless Function na pasta /api/login.js
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario: mat, senha: pass })
+        });
+
+        const res = await response.json();
+
+        if (res.authenticated) {
+            appState.usuario = mat;
+            mudarTela('screen-role');
+        } else {
+            alert("Matrícula ou Senha inválidos!");
+            btn.innerText = "Entrar";
+            btn.disabled = false;
+        }
+    } catch (e) {
+        console.error("Erro na API:", e);
+        alert("Erro técnico ao conectar com o servidor Vercel.");
+        btn.innerText = "Entrar";
+        btn.disabled = false;
+    }
+}
+
+// ==============================
+// SELEÇÃO DE PERFIL E CARREGAMENTO
+// ==============================
+function selecionarPerfil(tipo) {
+    appState.perfil = tipo;
+    document.getElementById('infoUsuario').innerText = `Matrícula: ${appState.usuario} | Perfil: ${tipo}`;
+    
+    mudarTela('screen-menu');
+    carregarEstoqueBase();
+}
+
+// ==============================
+// LEITURA DO EXCEL (SNAPSHOT MB52)
+// ==============================
+async function carregarEstoqueBase() {
+    try {
+        const response = await fetch(GITHUB_ESTOQUE);
+        if (!response.ok) throw new Error("Não foi possível acessar o arquivo de estoque no GitHub.");
+        
+        const arrayBuffer = await response.arrayBuffer();
+        const data = new Uint8Array(arrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        
+        // Converte Excel para objeto JSON
+        appState.estoque = XLSX.utils.sheet_to_json(worksheet);
+        
+        console.log("Banco de Dados Base Pronto. Itens:", appState.estoque.length);
+    } catch (e) {
+        console.error("Erro no processamento dos dados:", e);
+        alert("Erro ao carregar base de estoque. Verifique a conexão com o GitHub.");
+    }
+}
+</script>
+
+</body>
+</html>
