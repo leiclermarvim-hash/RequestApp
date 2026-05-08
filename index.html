@@ -147,25 +147,36 @@ async function carregarEstoqueBase() {
         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
         
         const range = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-        
-        // Busca a linha onde o SAP começa os dados
         let indiceCabecalho = range.findIndex(linha => linha && linha.includes("Material"));
         if (indiceCabecalho === -1) indiceCabecalho = 0;
         
         const dadosBrutos = XLSX.utils.sheet_to_json(worksheet, { range: indiceCabecalho });
 
-        appState.estoque = dadosBrutos.map(item => ({
-            codigo: item["Material"],
-            descricao: item["Texto breve material"],
-            saldo: parseFloat(item["Utilização livre"]) || 0,
-            unidade: item["Unid.medida básica"],
-            deposito: item["Depósito"]
-        })).filter(i => i.codigo);
+        // FILTRO POR CENTRO: 
+        // Pegamos o centro do usuário que logou (appState.dadosUsuario.centro)
+        const centroUsuario = appState.dadosUsuario?.centro?.toString().toUpperCase().trim();
 
-        console.log("Estoque carregado!");
-    } catch (e) { console.error("Erro ao ler MB52:", e); }
+        appState.estoque = dadosBrutos
+            .map(item => ({
+                codigo: item["Material"],
+                descricao: item["Texto breve material"],
+                saldo: parseFloat(item["Utilização livre"]) || 0,
+                unidade: item["Unid.medida básica"],
+                deposito: item["Depósito"],
+                centro: item["Centro"]?.toString().toUpperCase().trim() // Pegamos o centro do Excel
+            }))
+            .filter(i => {
+                // Só mantém o item se tiver código E se o centro bater com o do usuário
+                const codigoValido = !!i.codigo;
+                const centroBate = centroUsuario ? (i.centro === centroUsuario) : true;
+                return codigoValido && centroBate;
+            });
+
+        console.log(`Estoque filtrado para o centro ${centroUsuario}: ${appState.estoque.length} itens.`);
+    } catch (e) { 
+        console.error("Erro ao ler MB52:", e); 
+    }
 }
-
 function abrirOSM() { mudarTela('screen-osm'); filtrarEstoque(); }
 
 function filtrarEstoque() {
