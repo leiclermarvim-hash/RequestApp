@@ -78,10 +78,9 @@
         </div>
     </div>
 
-    <footer>FAST REQUEST PRO • v15.6.1 • GitHub + Vercel</footer>
+    <footer>FAST REQUEST PRO • v15.6.2 • GitHub + Vercel</footer>
 
 <script>
-// CORREÇÃO: Removida a duplicação e as aspas extras que travavam o código
 const GITHUB_ESTOQUE = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX";
 let appState = { usuario: null, perfil: null, dadosUsuario: null, estoque: [] };
 
@@ -107,7 +106,6 @@ async function login() {
             body: JSON.stringify({ usuario: mat, senha: pass })
         });
 
-        // Se a Vercel retornar erro 404 ou 500
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.error || `Erro no servidor (${response.status})`);
@@ -131,6 +129,7 @@ async function login() {
         btn.disabled = false;
     }
 }
+
 function selecionarPerfil(tipo) {
     appState.perfil = tipo;
     document.getElementById('infoUsuario').innerText = `Olá, ${appState.dadosUsuario?.nome || appState.usuario}`;
@@ -140,20 +139,21 @@ function selecionarPerfil(tipo) {
 
 async function carregarEstoqueBase() {
     try {
-        const response = await fetch(GITHUB_ESTOQUE);
+        const response = await fetch(GITHUB_ESTOQUE + "?t=" + new Date().getTime());
         const arrayBuffer = await response.arrayBuffer();
         const data = new Uint8Array(arrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
         
         const range = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-        let indiceCabecalho = range.findIndex(linha => linha && linha.includes("Material"));
+        
+        // Localiza a linha do cabeçalho
+        let indiceCabecalho = range.findIndex(linha => linha && linha.some(cel => cel && cel.toString().includes("Material")));
         if (indiceCabecalho === -1) indiceCabecalho = 0;
         
         const dadosBrutos = XLSX.utils.sheet_to_json(worksheet, { range: indiceCabecalho });
 
-        // FILTRO POR CENTRO: 
-        // Pegamos o centro do usuário que logou (appState.dadosUsuario.centro)
+        // Pega o centro do usuário logado
         const centroUsuario = appState.dadosUsuario?.centro?.toString().toUpperCase().trim();
 
         appState.estoque = dadosBrutos
@@ -163,20 +163,21 @@ async function carregarEstoqueBase() {
                 saldo: parseFloat(item["Utilização livre"]) || 0,
                 unidade: item["Unid.medida básica"],
                 deposito: item["Depósito"],
-                centro: item["Centro"]?.toString().toUpperCase().trim() // Pegamos o centro do Excel
+                centro: item["Centro"]?.toString().toUpperCase().trim()
             }))
             .filter(i => {
-                // Só mantém o item se tiver código E se o centro bater com o do usuário
                 const codigoValido = !!i.codigo;
+                // Se o usuário tiver um centro no cadastro, filtra por ele. Caso contrário, mostra tudo.
                 const centroBate = centroUsuario ? (i.centro === centroUsuario) : true;
                 return codigoValido && centroBate;
             });
 
-        console.log(`Estoque filtrado para o centro ${centroUsuario}: ${appState.estoque.length} itens.`);
+        console.log(`Estoque carregado. Centro: ${centroUsuario || 'Todos'}. Itens: ${appState.estoque.length}`);
     } catch (e) { 
         console.error("Erro ao ler MB52:", e); 
     }
 }
+
 function abrirOSM() { mudarTela('screen-osm'); filtrarEstoque(); }
 
 function filtrarEstoque() {
@@ -189,6 +190,7 @@ function filtrarEstoque() {
         (i.descricao && i.descricao.toLowerCase().includes(termo))
     );
 
+    // Mostra os primeiros 50 resultados para performance
     filtrados.slice(0, 50).forEach(item => {
         const div = document.createElement('div');
         div.className = 'item-estoque';
