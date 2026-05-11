@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>FAST REQUEST PRO - Estoque por Centro</title>
+    <title>FAST REQUEST PRO - V15.8</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
@@ -11,9 +11,9 @@
             --bg1:#0a0f2c; --bg2:#020417; --glass:rgba(255,255,255,.08);
             --accent:#00ffe0; --primary:#0066ff; --danger:#ff4444;
         }
-        * { box-sizing:border-box; }
+        * { box-sizing:border-box; margin: 0; padding: 0; }
         body {
-            margin:0; font-family:'Segoe UI', sans-serif;
+            font-family:'Segoe UI', sans-serif;
             background:radial-gradient(circle at top,var(--bg1),var(--bg2));
             color:#fff; min-height: 100vh;
         }
@@ -21,83 +21,89 @@
         .screen.active { display:flex; }
         
         .card {
-            width:100%; max-width:380px; padding:30px; border-radius:20px;
+            width:100%; max-width:400px; padding:30px; border-radius:20px;
             background:var(--glass); backdrop-filter: blur(14px); text-align:center;
-            box-shadow:0 0 30px rgba(0,255,255,.25); border: 1px solid rgba(255,255,255,0.1);
+            box-shadow:0 0 30px rgba(0,255,255,.15); border: 1px solid rgba(255,255,255,0.1);
         }
         
-        input, button, select { width:100%; padding:14px; margin-top:10px; border:none; border-radius:12px; font-size:15px; outline: none; transition: 0.3s; }
-        input, select { background: rgba(255,255,255,0.1); color: #fff; }
+        input, button { width:100%; padding:14px; margin-top:10px; border:none; border-radius:12px; font-size:15px; outline: none; }
+        input { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid transparent; }
+        input:focus { border-color: var(--accent); }
         button { background:linear-gradient(135deg,var(--accent),var(--primary)); font-weight:700; cursor:pointer; color:#000; }
-        button:disabled { filter: grayscale(1); cursor: not-allowed; opacity: 0.5; }
+        button:disabled { filter: grayscale(1); opacity: 0.5; }
         
-        .form-section { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: left; width: 100%; max-width: 500px; }
+        .form-section { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px; margin-bottom: 15px; width: 100%; max-width: 500px; }
         .section-title { font-size: 11px; color: var(--accent); font-weight: bold; margin-bottom: 10px; text-transform: uppercase; display: block; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
         
-        .search-results { position: absolute; background: #0a0f2c; width: 100%; left: 0; z-index: 999; border: 1px solid var(--accent); display: none; max-height: 200px; overflow-y: auto; border-radius: 10px; }
-        .result-item { padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer; }
+        .search-results { position: absolute; background: #0a0f2c; width: 100%; left: 0; z-index: 999; border: 1px solid var(--accent); display: none; max-height: 200px; overflow-y: auto; border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .result-item { padding:12px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer; }
         .result-item:hover { background: rgba(0,255,224,0.1); }
 
-        .badge-centro { background: var(--primary); padding: 2px 8px; border-radius: 5px; font-size: 10px; }
         .item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        footer { position: fixed; bottom: 10px; font-size: 10px; color: rgba(255,255,255,0.3); }
     </style>
 </head>
 <body>
 
-    <!-- LOGIN -->
+    <!-- TELA LOGIN -->
     <div id="screen-login" class="screen active">
         <div class="card">
-            <h2>FAST REQUEST PRO</h2>
-            <p style="font-size: 12px; color: var(--accent);">Validação por Centro Operacional</p>
+            <h1 style="margin-bottom: 5px;">FAST REQUEST</h1>
+            <p style="font-size: 12px; color: var(--accent); margin-bottom: 20px;">SISTEMA DE LOGÍSTICA INTEGRADA</p>
             <input id="login_mat" type="text" placeholder="Matrícula">
             <input id="login_pass" type="password" placeholder="Senha">
-            <button id="btn-login" onclick="executarLogin()">Entrar</button>
+            <button id="btn-login" onclick="executarLogin()">ACESSAR SISTEMA</button>
         </div>
     </div>
 
-    <!-- MENU -->
+    <!-- TELA MENU -->
     <div id="screen-menu" class="screen">
         <div class="form-section">
-            <h3 id="userGreeting">Olá, Usuário</h3>
-            <p id="userLocation" style="font-size: 12px; color: var(--accent);"></p>
-            <button onclick="mudarTela('screen-osm')">📋 Iniciar Pedido OSM</button>
-            <button onclick="mudarTela('screen-estoque')" style="background: #444; color: #fff; margin-top: 10px;">📦 Ver Meu Estoque</button>
-            <button onclick="location.reload()" style="background: transparent; color: var(--danger); margin-top: 20px; border: 1px solid var(--danger);">Sair</button>
+            <h3 id="userGreeting">Olá</h3>
+            <p id="userLocation" style="font-size: 12px; color: var(--accent); margin-bottom: 15px;"></p>
+            <button onclick="mudarTela('screen-osm')">📋 CRIAR PEDIDO (OSM)</button>
+            <button onclick="mudarTela('screen-estoque')" style="background: #222; color: #fff; margin-top: 10px;">📦 CONSULTAR MEU ESTOQUE</button>
+            <button onclick="location.reload()" style="background: transparent; color: var(--danger); margin-top: 20px; border: 1px solid var(--danger);">SAIR</button>
         </div>
     </div>
 
-    <!-- PEDIDO OSM -->
+    <!-- TELA OSM -->
     <div id="screen-osm" class="screen">
-        <div class="form-section" style="max-width: 550px;">
-            <span class="section-title">Nova Requisição de Material</span>
-            <input type="text" id="osm_number" placeholder="Nº da OSM ou Projeto" oninput="this.value=this.value.toUpperCase()">
+        <div class="form-section">
+            <span class="section-title">Dados da Solicitação</span>
+            <input type="text" id="osm_number" placeholder="Nº OSM / PROJETO" oninput="this.value=this.value.toUpperCase()">
             
-            <div style="position:relative; margin-top: 15px;">
-                <label style="font-size: 12px; color: #aaa;">Buscar Material Disponível no seu Centro:</label>
-                <input type="text" id="input_busca_mb52" placeholder="Código SAP ou Nome..." onkeyup="filtrarMB52(this.value)">
+            <div style="position:relative; margin-top: 20px;">
+                <span class="section-title">Buscar Material no Centro</span>
+                <input type="text" id="input_busca_mb52" placeholder="Código SAP ou Descrição..." onkeyup="filtrarEstoque(this.value)">
                 <div id="busca_results" class="search-results"></div>
             </div>
 
-            <div id="area_selecao" style="display:none; margin-top: 15px; padding: 10px; background: rgba(0,255,224,0.05); border-radius: 10px;">
-                <div id="item_info" style="font-size: 13px; font-weight: bold;"></div>
-                <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
-                    <input type="number" id="qtd_solicitada" placeholder="Qtd" style="flex: 1; margin-top: 0;">
-                    <button onclick="adicionarAoCarrinho()" style="flex: 1; margin-top: 0;">Adicionar</button>
+            <div id="area_selecao" style="display:none; margin-top: 15px; padding: 15px; background: rgba(0,255,224,0.05); border-radius: 10px; border: 1px solid var(--accent);">
+                <div id="item_info" style="font-size: 13px; font-weight: bold; margin-bottom: 10px;"></div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="qtd_solicitada" placeholder="Qtd" style="margin-top:0;">
+                    <button onclick="adicionarAoCarrinho()" style="margin-top:0; width: 120px;">OK</button>
                 </div>
             </div>
 
             <div id="carrinho" style="margin-top: 20px;">
-                <span class="section-title">Materiais na Lista</span>
-                <div id="carrinho_list"></div>
+                <span class="section-title">Itens Selecionados</span>
+                <div id="carrinho_list" style="max-height: 200px; overflow-y: auto;"></div>
             </div>
 
-            <button id="btn_finalizar" onclick="finalizarOSM()" style="margin-top: 20px;" disabled>Finalizar Pedido</button>
-            <button onclick="mudarTela('screen-menu')" style="background:transparent; color:#aaa; margin-top: 10px;">Cancelar</button>
+            <button id="btn_finalizar" onclick="finalizarOSM()" style="margin-top: 20px;" disabled>CONFIRMAR PEDIDO</button>
+            <button onclick="mudarTela('screen-menu')" style="background:transparent; color:#aaa; margin-top: 10px;">VOLTAR</button>
         </div>
     </div>
 
+    <footer>V15.8.2 • Campos dos Goytacazes, RJ</footer>
+
 <script>
+// --- CONFIGURAÇÃO DE LINKS ---
+const GITHUB_CONFIG = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/URL_USUARIOS_GITHUB.csv";
 const GITHUB_MB52 = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX";
+
 let state = {
     user: null,
     db_estoque: [],
@@ -105,35 +111,66 @@ let state = {
     carrinho: []
 };
 
-// 1. LOGIN E CARREGAMENTO DE CONTEXTO
+// 1. LOGIN COM BANCO DE DADOS EM CONFIGURAÇÕES
 async function executarLogin() {
-    const mat = document.getElementById('login_mat').value;
-    if(!mat) return alert("Digite sua matrícula");
+    const mat = document.getElementById('login_mat').value.trim();
+    const pass = document.getElementById('login_pass').value.trim();
+    const btn = document.getElementById('btn-login');
 
-    // Simulação de retorno da API com o dado do CENTRO do usuário
-    // Aqui você deve usar o resultado do seu fetch('/api/login')
-    state.user = {
-        nome: "Marlei Ribeiro",
-        matricula: mat,
-        centro: "3103" // Este dado é a CHAVE para a lógica
-    };
-
-    document.getElementById('userGreeting').innerText = `Olá, ${state.user.nome}`;
-    document.getElementById('userLocation').innerText = `Centro Operacional: ${state.user.centro}`;
+    if(!mat || !pass) return alert("Preencha matrícula e senha.");
     
-    await carregarBaseMB52();
-    mudarTela('screen-menu');
+    btn.disabled = true;
+    btn.innerText = "AUTENTICANDO...";
+
+    try {
+        const res = await fetch(GITHUB_CONFIG + "?t=" + new Date().getTime());
+        const text = await res.text();
+        
+        // Processa CSV (considerando vírgula ou ponto-e-vírgula)
+        const separator = text.includes(';') ? ';' : ',';
+        const linhas = text.split('\n').map(l => l.split(separator));
+        const cabecalho = linhas[0].map(c => c.trim().toUpperCase());
+        
+        const usuarios = linhas.slice(1).map(linha => {
+            let obj = {};
+            linha.forEach((val, i) => { if(cabecalho[i]) obj[cabecalho[i]] = val ? val.trim() : ""; });
+            return obj;
+        });
+
+        const user = usuarios.find(u => u['MATRÍCULA'] === mat && u['SENHA'] === pass);
+
+        if (user) {
+            state.user = {
+                nome: user['NOME COMPLETO'] || user['NOME'],
+                matricula: user['MATRÍCULA'],
+                centro: user['CENTRO']
+            };
+            
+            await carregarEstoqueMB52(); // Só carrega o que o usuário pode ver
+            
+            document.getElementById('userGreeting').innerText = `Olá, ${state.user.nome}`;
+            document.getElementById('userLocation').innerText = `Centro Operacional: ${state.user.centro}`;
+            mudarTela('screen-menu');
+        } else {
+            alert("Credenciais inválidas para este centro.");
+        }
+    } catch (e) {
+        alert("Erro ao conectar com o banco de usuários.");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "ACESSAR SISTEMA";
+    }
 }
 
-// 2. BUSCA DO ARQUIVO MB52
-async function carregarBaseMB52() {
+// 2. CARREGAR MB52 FILTRADO POR CENTRO E SALDO
+async function carregarEstoqueMB52() {
     try {
         const res = await fetch(GITHUB_MB52 + "?t=" + new Date().getTime());
         const ab = await res.arrayBuffer();
         const wb = XLSX.read(new Uint8Array(ab), {type: 'array'});
         const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
 
-        // MAPEAMENTO E FILTRO INICIAL: Só entra o que for do CENTRO do usuário e tiver SALDO > 0
+        // Lógica Principal: Mapeia e filtra apenas o Centro do Usuário com Saldo > 0
         state.db_estoque = data.map(i => ({
             sap: i["Material"]?.toString().trim(),
             texto: i["Texto breve material"],
@@ -142,14 +179,14 @@ async function carregarBaseMB52() {
             unidade: i["Unid.medida básica"]
         })).filter(i => i.centro === state.user.centro && i.saldo > 0);
 
-        console.log(`Logado no centro ${state.user.centro}. Itens disponíveis: ${state.db_estoque.length}`);
+        console.log(`Estoque pronto: ${state.db_estoque.length} itens no centro ${state.user.centro}`);
     } catch (e) {
-        alert("Erro ao sincronizar estoque MB52.");
+        alert("Erro ao ler base de estoque MB52.");
     }
 }
 
-// 3. LÓGICA DE BUSCA FILTRADA
-function filtrarMB52(termo) {
+// 3. BUSCA E FILTRO EM TEMPO REAL
+function filtrarEstoque(termo) {
     const resDiv = document.getElementById('busca_results');
     resDiv.innerHTML = "";
     if(termo.length < 2) { resDiv.style.display = 'none'; return; }
@@ -159,75 +196,71 @@ function filtrarMB52(termo) {
         i.sap.includes(busca) || i.texto.toLowerCase().includes(busca)
     );
 
-    filtrados.slice(0, 15).forEach(item => {
+    filtrados.slice(0, 10).forEach(item => {
         const div = document.createElement('div');
         div.className = 'result-item';
         div.innerHTML = `
             <div style="font-size:13px;"><b>${item.sap}</b> - ${item.texto}</div>
-            <div style="font-size:11px; color:var(--accent);">Disponível: ${item.saldo} ${item.unidade}</div>
+            <div style="font-size:11px; color:var(--accent);">Saldo: ${item.saldo} ${item.unidade}</div>
         `;
-        div.onclick = () => prepararSelecao(item);
+        div.onclick = () => {
+            state.selecionado = item;
+            document.getElementById('busca_results').style.display = 'none';
+            document.getElementById('input_busca_mb52').value = item.sap;
+            document.getElementById('area_selecao').style.display = 'block';
+            document.getElementById('item_info').innerText = `${item.texto} (Disponível: ${item.saldo})`;
+        };
         resDiv.appendChild(div);
     });
     resDiv.style.display = filtrados.length ? 'block' : 'none';
 }
 
-function prepararSelecao(item) {
-    state.selecionado = item;
-    document.getElementById('busca_results').style.display = 'none';
-    document.getElementById('input_busca_mb52').value = item.sap;
-    document.getElementById('area_selecao').style.display = 'block';
-    document.getElementById('item_info').innerText = `${item.texto} (Max: ${item.saldo})`;
-}
-
-// 4. ADICIONAR AO CARRINHO COM VALIDAÇÃO DE SALDO
+// 4. CARRINHO E VALIDAÇÕES
 function adicionarAoCarrinho() {
     const qtd = parseFloat(document.getElementById('qtd_solicitada').value);
-    const item = state.selecionado;
+    if(!qtd || qtd <= 0) return alert("Informe a quantidade.");
+    if(qtd > state.selecionado.saldo) return alert("Quantidade acima do estoque disponível.");
 
-    if(!qtd || qtd <= 0) return alert("Informe uma quantidade válida.");
-    if(qtd > item.saldo) return alert(`Saldo insuficiente no centro ${state.user.centro}.`);
-
-    state.carrinho.push({ ...item, qtd_pedida: qtd });
+    state.carrinho.push({ ...state.selecionado, qtd_pedida: qtd });
     
-    // Reset campos
+    // Reset
     document.getElementById('area_selecao').style.display = 'none';
     document.getElementById('input_busca_mb52').value = "";
     document.getElementById('qtd_solicitada').value = "";
     
-    atualizarInterfaceCarrinho();
+    renderCarrinho();
 }
 
-function atualizarInterfaceCarrinho() {
-    const container = document.getElementById('carrinho_list');
-    container.innerHTML = state.carrinho.map((i, index) => `
+function renderCarrinho() {
+    const cont = document.getElementById('carrinho_list');
+    cont.innerHTML = state.carrinho.map((i, index) => `
         <div class="item-row">
             <div style="font-size:12px;"><b>${i.sap}</b><br>${i.texto}</div>
             <div style="color:var(--accent); font-weight:bold;">${i.qtd_pedida}</div>
-            <button onclick="removerItem(${index})" style="width:auto; padding:5px 10px; background:var(--danger); color:#fff; margin:0;">X</button>
+            <button onclick="removerItem(${index})" style="width:30px; height:30px; padding:0; background:var(--danger); color:#fff; border-radius:50%; margin-left:10px;">✕</button>
         </div>
     `).join('');
-    
     document.getElementById('btn_finalizar').disabled = state.carrinho.length === 0;
 }
 
 function removerItem(idx) {
     state.carrinho.splice(idx, 1);
-    atualizarInterfaceCarrinho();
+    renderCarrinho();
+}
+
+function finalizarOSM() {
+    const osm = document.getElementById('osm_number').value;
+    if(!osm) return alert("Número da OSM é obrigatório.");
+    
+    // Aqui você integraria com o seu WebApp do Google Sheets para salvar o pedido
+    alert(`Sucesso!\nPedido para OSM ${osm} gerado no centro ${state.user.centro}.`);
+    state.carrinho = [];
+    mudarTela('screen-menu');
 }
 
 function mudarTela(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
-}
-
-function finalizarOSM() {
-    const osm = document.getElementById('osm_number').value;
-    if(!osm) return alert("Informe o número da OSM.");
-    
-    alert(`Pedido enviado para separação!\nCentro: ${state.user.centro}\nOSM: ${osm}\nItens: ${state.carrinho.length}`);
-    state.carrinho = [];
-    mudarTela('screen-menu');
 }
 </script>
 </body>
