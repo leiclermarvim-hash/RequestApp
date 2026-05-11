@@ -2,14 +2,14 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>FAST REQUEST PRO - V15.9.1</title>
+    <title>FAST REQUEST PRO - ADMIN DASHBOARD</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
         :root {
             --bg1:#0a0f2c; --bg2:#020417; --glass:rgba(255,255,255,.08);
-            --accent:#00ffe0; --primary:#0066ff; --danger:#ff4444;
+            --accent:#00ffe0; --primary:#0066ff; --danger:#ff4444; --success:#00ff88;
         }
         * { box-sizing:border-box; margin: 0; padding: 0; }
         body {
@@ -26,22 +26,25 @@
             box-shadow:0 0 30px rgba(0,255,255,.15); border: 1px solid rgba(255,255,255,0.1);
         }
         
-        input, button { width:100%; padding:14px; margin-top:10px; border:none; border-radius:12px; font-size:14px; outline: none; }
-        input { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+        input, button, select { width:100%; padding:14px; margin-top:10px; border:none; border-radius:12px; font-size:14px; outline: none; }
+        input, select { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
         input:focus { border-color: var(--accent); }
         
         button { background:linear-gradient(135deg,var(--accent),var(--primary)); font-weight:700; cursor:pointer; color:#000; transition: 0.3s; }
-        button:active { transform: scale(0.98); }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
         
-        .form-container { width: 100%; max-width: 550px; background: var(--glass); padding: 20px; border-radius: 15px; backdrop-filter: blur(10px); }
-        .section-title { font-size: 11px; color: var(--accent); font-weight: bold; margin: 15px 0 5px 0; text-transform: uppercase; display: block; }
+        .form-container { width: 100%; max-width: 550px; background: var(--glass); padding: 25px; border-radius: 20px; backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); }
+        .section-title { font-size: 10px; color: var(--accent); font-weight: bold; margin: 15px 0 5px 0; text-transform: uppercase; letter-spacing: 1px; display: block; }
         
-        .search-box { position: relative; }
+        .grid-dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .grid-dashboard button { height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 12px; gap: 8px; }
+        .grid-dashboard i { font-size: 20px; }
+
         .search-results { position: absolute; background: #0a0f2c; width: 100%; z-index: 999; border: 1px solid var(--accent); display: none; max-height: 180px; overflow-y: auto; border-radius: 10px; }
         .result-item { padding:12px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer; font-size: 13px; text-align: left; }
-        
+
         .carrinho-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 8px; font-size: 12px; }
-        .btn-del { background: var(--danger); color: white; width: 30px; padding: 5px; margin: 0; }
+        .btn-del { background: var(--danger); color: white; width: 30px; padding: 5px; margin: 0; border-radius: 6px; }
         
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         footer { position: fixed; bottom: 10px; width: 100%; text-align: center; font-size: 10px; color: rgba(255,255,255,0.4); }
@@ -49,46 +52,85 @@
 </head>
 <body>
 
-    <!-- TELA DE LOGIN RESTAURADA -->
+    <!-- TELA DE LOGIN -->
     <div id="screen-login" class="screen active">
         <div class="card">
-            <h1>FAST REQUEST</h1>
-            <p style="font-size: 12px; color: var(--accent); margin-bottom: 20px;">CONTROLE DE MATERIAIS MT/BT</p>
+            <h1 style="letter-spacing: 2px;">FAST REQUEST</h1>
+            <p style="font-size: 10px; color: var(--accent); margin-bottom: 20px; text-transform: uppercase;">Módulo de Manutenção & Operações</p>
             <input id="login_mat" type="text" placeholder="Matrícula">
             <input id="login_pass" type="password" placeholder="Senha">
-            <button id="btn_entrar" onclick="executarLogin()">ENTRAR NO SISTEMA</button>
+            <button id="btn_entrar" onclick="executarLogin()">ACESSAR PAINEL</button>
         </div>
     </div>
 
-    <!-- TELA MENU -->
+    <!-- PAINEL ADM (MENU PRINCIPAL) -->
     <div id="screen-menu" class="screen">
-        <div class="form-container" style="text-align: center;">
-            <h3 id="userGreeting">Olá</h3>
-            <p id="userLocation" style="font-size: 12px; color: var(--accent); margin-bottom: 20px;"></p>
-            <button onclick="mudarTela('screen-osm')">📋 NOVA REQUISIÇÃO (OSM)</button>
-            <button onclick="location.reload()" style="background: transparent; color: var(--danger); margin-top: 20px; border: 1px solid var(--danger);">LOGOUT / SAIR</button>
+        <div class="form-container">
+            <div style="text-align: left; margin-bottom: 20px;">
+                <h3 id="userGreeting" style="font-size: 20px;">Painel Administrativo</h3>
+                <p id="userLocation" style="font-size: 11px; color: var(--accent);"></p>
+            </div>
+
+            <div class="grid-dashboard">
+                <button onclick="mudarTela('screen-osm')"><span>📋</span> Gerar OSM</button>
+                <button onclick="abrirProgramada()" style="background: #1a1f3c; color: #fff;"><span>📅</span> Programada</button>
+                <button onclick="mudarTela('screen-conversor')" style="background: #1a1f3c; color: var(--accent);"><span>⚖️</span> Conversor KG/M</button>
+                <button onclick="alert('Histórico em desenvolvimento...')" style="background: #1a1f3c; color: #fff;"><span>🔍</span> Solicitações</button>
+            </div>
+
+            <button onclick="location.reload()" style="background: transparent; color: var(--danger); margin-top: 25px; border: 1px solid var(--danger); padding: 8px;">ENCERRAR SESSÃO</button>
         </div>
     </div>
 
-    <!-- TELA OSM -->
+    <!-- TELA CONVERSOR -->
+    <div id="screen-conversor" class="screen">
+        <div class="form-container">
+            <h2 style="color: var(--accent); font-size: 18px;">⚖️ Conversor de Materiais</h2>
+            <span class="section-title">Selecione o Item (Padrão Técnico)</span>
+            <select id="tipo_material" onchange="limparConversor()">
+                <option value="0.190">CABO MULTIPLEXADO 1X16 (0,190 kg/m)</option>
+                <option value="0.320">CABO MULTIPLEXADO 1X35 (0,320 kg/m)</option>
+                <option value="0.085">FIO DE COBRE 4MM (0,085 kg/m)</option>
+                <option value="0.450">CABO DE ALUMÍNIO CA 4/0 (0,450 kg/m)</option>
+            </select>
+
+            <div class="grid-2" style="margin-top: 15px;">
+                <div>
+                    <span class="section-title">Metros (m)</span>
+                    <input type="number" id="input_metros" placeholder="Ex: 100" oninput="calcKg()">
+                </div>
+                <div>
+                    <span class="section-title">Peso (kg)</span>
+                    <input type="number" id="input_kg" placeholder="Ex: 19" oninput="calcMetros()">
+                </div>
+            </div>
+
+            <div id="res_calc" style="margin-top: 20px; padding: 15px; background: rgba(0,255,224,0.1); border-radius: 10px; text-align: center; color: var(--accent); font-weight: bold; border: 1px dashed var(--accent);">
+                Resultado aparecerá aqui
+            </div>
+
+            <button onclick="mudarTela('screen-menu')" class="btn-secondary" style="margin-top: 15px;">VOLTAR AO MENU</button>
+        </div>
+    </div>
+
+    <!-- TELA OSM (REQUISIÇÃO) -->
     <div id="screen-osm" class="screen">
         <div class="form-container">
-            <h2 style="color: var(--accent); margin-bottom: 15px; font-size: 18px;">Nova Requisição</h2>
+            <h2 style="color: var(--accent); font-size: 18px;">📋 Nova Requisição OSM</h2>
             
-            <span class="section-title">Dados da Operação</span>
             <div class="grid-2">
                 <input type="text" id="osm_num" placeholder="Nº OSM">
                 <input type="text" id="viatura" placeholder="Viatura">
             </div>
-            <input type="text" id="encarregado" placeholder="Encarregado">
+            <input type="text" id="encarregado" placeholder="Nome do Encarregado">
 
-            <span class="section-title">Pesquisar Material</span>
-            <div class="search-box">
-                <input type="text" id="busca_sap" placeholder="Cód ou Descrição..." onkeyup="buscarNoEstoque(this.value)">
+            <span class="section-title">Buscar no Estoque (Coluna P)</span>
+            <div style="position: relative;">
+                <input type="text" id="busca_sap" placeholder="Pesquisar..." onkeyup="buscarNoEstoque(this.value)">
                 <div id="res_busca" class="search-results"></div>
             </div>
 
-            <div id="painel_qtd" style="display:none; margin-top: 10px; padding: 15px; border: 1px solid var(--accent); border-radius: 10px;">
+            <div id="painel_qtd" style="display:none; margin-top: 10px; padding: 15px; border: 1px solid var(--accent); border-radius: 12px;">
                 <p id="label_item" style="font-size: 12px; font-weight: bold;"></p>
                 <div class="grid-2" style="margin-top: 10px;">
                     <input type="number" id="input_qtd" placeholder="Qtd">
@@ -96,152 +138,144 @@
                 </div>
             </div>
 
-            <span class="section-title">Itens Selecionados</span>
+            <span class="section-title">Materiais na Lista</span>
             <div id="lista_itens" style="margin-bottom: 15px; min-height: 40px;"></div>
 
-            <button id="btn_enviar" onclick="enviarPedido()">FINALIZAR REQUISIÇÃO</button>
-            <button onclick="mudarTela('screen-menu')" style="background: transparent; color: #aaa;">VOLTAR</button>
+            <button id="btn_enviar" onclick="enviarPedido()">ENVIAR REQUISIÇÃO</button>
+            <button onclick="mudarTela('screen-menu')" class="btn-secondary">CANCELAR</button>
         </div>
     </div>
 
-    <footer>CAMPOS DOS GOYTACAZES - RJ</footer>
+    <footer>UNIDADE CAMPOS DOS GOYTACAZES</footer>
 
 <script>
 const URL_USUARIOS = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/refs/heads/main/configuracoes/usuarios.csv";
 const URL_MB52 = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX";
 
-let state = {
-    user: null,
-    estoqueLocal: [],
-    itemTemp: null,
-    carrinho: []
-};
+let state = { user: null, estoqueLocal: [], itemTemp: null, carrinho: [] };
 
-// 1. LOGIN VIA CSV (Restaurado para destravar o app)
+// LOGIN E FILTRO
 async function executarLogin() {
     const btn = document.getElementById('btn_entrar');
     const mat = document.getElementById('login_mat').value.trim();
     const pass = document.getElementById('login_pass').value.trim();
 
-    if(!mat || !pass) return alert("Preencha todos os campos.");
-    
-    btn.innerText = "VALIDANDO...";
-    btn.disabled = true;
-
+    btn.innerText = "AUTENTICANDO...";
     try {
         const res = await fetch(URL_USUARIOS + "?t=" + new Date().getTime());
         const text = await res.text();
         const linhas = text.split('\n').filter(l => l.trim() !== "");
-        const separador = text.includes(';') ? ';' : ',';
+        const sep = text.includes(';') ? ';' : ',';
+        const cabecalho = linhas[0].split(sep).map(c => c.trim().toUpperCase());
         
-        const cabecalho = linhas[0].split(separador).map(c => c.trim().toUpperCase());
         const usuarios = linhas.slice(1).map(linha => {
-            let colunas = linha.split(separador);
+            let col = linha.split(sep);
             let obj = {};
-            cabecalho.forEach((tit, i) => obj[tit] = colunas[i] ? colunas[i].trim() : "");
+            cabecalho.forEach((t, i) => obj[t] = col[i] ? col[i].trim() : "");
             return obj;
         });
 
-        const encontrado = usuarios.find(u => u['MATRICULA'] === mat && u['SENHA'] === pass);
-
-        if (encontrado) {
-            state.user = {
-                nome: encontrado['NOME'],
-                centro: encontrado['CENTRO'],
-                matricula: encontrado['MATRICULA']
-            };
-            
+        const user = usuarios.find(u => u['MATRICULA'] === mat && u['SENHA'] === pass);
+        if (user) {
+            state.user = { nome: user['NOME'], centro: user['CENTRO'], matricula: user['MATRICULA'] };
             await carregarEstoque();
-            
             document.getElementById('userGreeting').innerText = `Olá, ${state.user.nome}`;
-            document.getElementById('userLocation').innerText = `Centro: ${state.user.centro} | Matrícula: ${state.user.matricula}`;
+            document.getElementById('userLocation').innerText = `Centro: ${state.user.centro} | Ref: ${state.user.matricula}`;
             mudarTela('screen-menu');
-        } else {
-            alert("Matrícula ou Senha incorreta.");
-            btn.innerText = "ENTRAR NO SISTEMA";
-            btn.disabled = false;
-        }
-    } catch (e) { 
-        alert("Erro ao acessar base de usuários."); 
-        btn.innerText = "ENTRAR NO SISTEMA";
-        btn.disabled = false;
-    }
+        } else { alert("Acesso negado."); btn.innerText = "ACESSAR PAINEL"; }
+    } catch (e) { alert("Erro de conexão."); btn.innerText = "ACESSAR PAINEL"; }
 }
 
-// 2. CARREGAMENTO MB52 COM FILTRO PELA COLUNA P (CENTRO)
 async function carregarEstoque() {
     try {
         const res = await fetch(URL_MB52 + "?t=" + new Date().getTime());
         const ab = await res.arrayBuffer();
         const wb = XLSX.read(new Uint8Array(ab), {type: 'array'});
-        const rawData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
 
-        state.estoqueLocal = rawData.map(i => ({
+        state.estoqueLocal = raw.map(i => ({
             sap: i["Material"]?.toString().trim(),
             desc: i["Texto breve material"],
             saldo: parseFloat(i["Utilização livre"]) || 0,
-            centro: i["Centro"]?.toString().trim(), // Coluna P do Excel
+            centro: i["Centro"]?.toString().trim(), // Coluna P
             un: i["Unid.medida básica"]
         })).filter(i => i.centro === state.user.centro && i.saldo > 0);
-
-    } catch (e) { alert("Erro ao processar estoque MB52."); }
+    } catch (e) { console.error(e); }
 }
 
-// 3. BUSCA E CARRINHO
-function buscarNoEstoque(valor) {
-    const resDiv = document.getElementById('res_busca');
-    resDiv.innerHTML = "";
-    if(valor.length < 2) { resDiv.style.display = "none"; return; }
+// LÓGICA CONVERSOR
+function calcKg() {
+    const fator = parseFloat(document.getElementById('tipo_material').value);
+    const m = parseFloat(document.getElementById('input_metros').value) || 0;
+    const res = (m * fator).toFixed(3);
+    document.getElementById('res_calc').innerText = `${res} KG`;
+    document.getElementById('input_kg').value = res;
+}
 
-    const filtrados = state.estoqueLocal.filter(i => 
-        i.sap.includes(valor) || i.desc.toLowerCase().includes(valor.toLowerCase())
-    );
+function calcMetros() {
+    const fator = parseFloat(document.getElementById('tipo_material').value);
+    const kg = parseFloat(document.getElementById('input_kg').value) || 0;
+    const res = (kg / fator).toFixed(2);
+    document.getElementById('res_calc').innerText = `${res} METROS`;
+    document.getElementById('input_metros').value = res;
+}
 
-    filtrados.slice(0, 10).forEach(item => {
+function limparConversor() {
+    document.getElementById('input_metros').value = "";
+    document.getElementById('input_kg').value = "";
+    document.getElementById('res_calc').innerText = "Resultado aparecerá aqui";
+}
+
+// BUSCA E CARRINHO
+function buscarNoEstoque(v) {
+    const div = document.getElementById('res_busca');
+    div.innerHTML = "";
+    if(v.length < 2) { div.style.display="none"; return; }
+    const matches = state.estoqueLocal.filter(i => i.sap.includes(v) || i.desc.toLowerCase().includes(v.toLowerCase()));
+    matches.slice(0,8).forEach(item => {
         const d = document.createElement('div');
         d.className = 'result-item';
-        d.innerHTML = `<b>${item.sap}</b> - ${item.desc}<br><small style="color:var(--accent)">Disp: ${item.saldo} ${item.un}</small>`;
+        d.innerHTML = `<b>${item.sap}</b> - ${item.desc} (${item.saldo} ${item.un})`;
         d.onclick = () => {
             state.itemTemp = item;
-            document.getElementById('res_busca').style.display = "none";
+            div.style.display="none";
             document.getElementById('busca_sap').value = item.sap;
-            document.getElementById('painel_qtd').style.display = "block";
-            document.getElementById('label_item').innerText = `${item.desc}`;
+            document.getElementById('painel_qtd').style.display="block";
+            document.getElementById('label_item').innerText = item.desc;
         };
-        resDiv.appendChild(d);
+        div.appendChild(d);
     });
-    resDiv.style.display = filtrados.length ? "block" : "none";
+    div.style.display = matches.length ? "block" : "none";
 }
 
 function confirmarAdicao() {
-    const qtd = parseFloat(document.getElementById('input_qtd').value);
-    if(!qtd || qtd <= 0 || qtd > state.itemTemp.saldo) return alert("Qtd inválida ou acima do saldo.");
-
-    state.carrinho.push({ ...state.itemTemp, qtd_pedida: qtd });
-    document.getElementById('painel_qtd').style.display = "none";
-    document.getElementById('busca_sap').value = "";
-    document.getElementById('input_qtd').value = "";
+    const q = parseFloat(document.getElementById('input_qtd').value);
+    if(!q || q <= 0 || q > state.itemTemp.saldo) return alert("Verifique a quantidade.");
+    state.carrinho.push({...state.itemTemp, qtd_pedida: q});
+    document.getElementById('painel_qtd').style.display="none";
+    document.getElementById('busca_sap').value="";
     renderCarrinho();
 }
 
 function renderCarrinho() {
-    const container = document.getElementById('lista_itens');
-    container.innerHTML = state.carrinho.map((item, index) => `
+    document.getElementById('lista_itens').innerHTML = state.carrinho.map((item, i) => `
         <div class="carrinho-item">
             <span>${item.sap} | ${item.qtd_pedida} ${item.un}</span>
-            <button class="btn-del" onclick="removerItem(${index})">X</button>
+            <button class="btn-del" onclick="state.carrinho.splice(${i},1);renderCarrinho();">X</button>
         </div>
     `).join('');
 }
 
-function removerItem(idx) {
-    state.carrinho.splice(idx, 1);
-    renderCarrinho();
+function abrirProgramada() {
+    alert("Iniciando Módulo de Programada (Carga de Obras)...");
+    mudarTela('screen-osm'); // Por enquanto usa a mesma tela de requisição
 }
 
 function enviarPedido() {
-    if(state.carrinho.length === 0) return alert("Adicione itens.");
-    alert("Requisição pronta para envio!");
+    if(!state.carrinho.length) return alert("Carrinho vazio.");
+    alert("Enviado com sucesso!");
+    state.carrinho = [];
+    renderCarrinho();
     mudarTela('screen-menu');
 }
 
