@@ -8,170 +8,214 @@
 
     <style>
         :root {
-            --bg1:#0a0f2c; --bg2:#020417; --glass:rgba(255,255,255,.08);
-            --accent:#00ffe0; --primary:#0066ff; --danger:#ff4444; --success:#00ff88;
+            --bg1:#0a0f2c; --bg2:#020417; --glass:rgba(255,255,255,.05);
+            --accent:#00ffe0; --primary:#0066ff; --danger:#ff4444;
         }
         * { box-sizing:border-box; margin: 0; padding: 0; }
         body {
             font-family:'Segoe UI', sans-serif;
             background:radial-gradient(circle at top,var(--bg1),var(--bg2));
-            color:#fff; min-height: 100vh; padding-bottom: 50px;
+            color:#fff; min-height: 100vh;
         }
         .screen { display:none; min-height:100vh; justify-content:center; align-items:center; padding: 20px; flex-direction: column; }
         .screen.active { display:flex; }
         
-        .card {
-            width:100%; max-width:400px; padding:30px; border-radius:20px;
-            background:var(--glass); backdrop-filter: blur(14px); text-align:center;
-            box-shadow:0 0 30px rgba(0,255,255,.15); border: 1px solid rgba(255,255,255,0.1);
+        /* Container Principal */
+        .form-container { 
+            width: 100%; max-width: 550px; 
+            background: rgba(255, 255, 255, 0.03); 
+            padding: 30px; border-radius: 24px; 
+            backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        /* Títulos */
+        .section-title { font-size: 10px; color: var(--accent); font-weight: bold; margin: 15px 0 5px 0; text-transform: uppercase; letter-spacing: 1.5px; display: block; }
+        
+        /* Grid do Dashboard Estilo Imagem */
+        .grid-dashboard { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+            margin-top: 20px; 
+        }
+
+        /* Padronização dos Botões ADM */
+        .btn-dashboard {
+            height: 120px;
+            background: rgba(255, 255, 255, 0.04) !important;
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-dashboard span { font-size: 24px; filter: grayscale(1) brightness(2); transition: 0.3s; }
+        
+        /* Efeito de Destaque Ciano (Baseado na sua imagem) */
+        .btn-dashboard:hover {
+            background: rgba(0, 255, 224, 0.08) !important;
+            border-color: var(--accent) !important;
+            transform: translateY(-3px);
         }
         
-        input, button, select { width:100%; padding:14px; margin-top:10px; border:none; border-radius:12px; font-size:14px; outline: none; }
-        input, select { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
-        input:focus { border-color: var(--accent); }
-        
-        button { background:linear-gradient(135deg,var(--accent),var(--primary)); font-weight:700; cursor:pointer; color:#000; transition: 0.3s; }
-        .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
-        
-        .form-container { width: 100%; max-width: 550px; background: var(--glass); padding: 25px; border-radius: 20px; backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); }
-        .section-title { font-size: 10px; color: var(--accent); font-weight: bold; margin: 15px 0 5px 0; text-transform: uppercase; letter-spacing: 1px; display: block; }
-        
-        .grid-dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
-        .grid-dashboard button { height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 12px; gap: 8px; }
-        .grid-dashboard i { font-size: 20px; }
+        .btn-dashboard:hover span { filter: none; }
+        .btn-dashboard:hover { color: var(--accent); }
 
+        /* Inputs e Botões Gerais */
+        input, select { 
+            width:100%; padding:14px; margin-top:10px; border:none; border-radius:12px; 
+            background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .btn-action { 
+            background: linear-gradient(135deg, var(--accent), var(--primary)); 
+            color: #000; font-weight: 800; border-radius: 12px; padding: 15px; margin-top: 20px;
+        }
+
+        .btn-logout {
+            background: transparent; border: 1px solid var(--danger);
+            color: var(--danger); border-radius: 50px; padding: 10px;
+            font-size: 11px; letter-spacing: 1px; margin-top: 30px;
+        }
+
+        /* Estilos de Lista e Busca */
         .search-results { position: absolute; background: #0a0f2c; width: 100%; z-index: 999; border: 1px solid var(--accent); display: none; max-height: 180px; overflow-y: auto; border-radius: 10px; }
         .result-item { padding:12px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer; font-size: 13px; text-align: left; }
-
         .carrinho-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 8px; font-size: 12px; }
-        .btn-del { background: var(--danger); color: white; width: 30px; padding: 5px; margin: 0; border-radius: 6px; }
         
+        footer { position: fixed; bottom: 10px; width: 100%; text-align: center; font-size: 10px; color: rgba(255,255,255,0.3); }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        footer { position: fixed; bottom: 10px; width: 100%; text-align: center; font-size: 10px; color: rgba(255,255,255,0.4); }
     </style>
 </head>
 <body>
 
-    <!-- TELA DE LOGIN -->
     <div id="screen-login" class="screen active">
-        <div class="card">
-            <h1 style="letter-spacing: 2px;">FAST REQUEST</h1>
-            <p style="font-size: 10px; color: var(--accent); margin-bottom: 20px; text-transform: uppercase;">Módulo de Manutenção & Operações</p>
+        <div class="form-container" style="max-width: 380px; text-align: center;">
+            <h1 style="letter-spacing: 3px; font-size: 24px;">FAST REQUEST</h1>
+            <p style="font-size: 10px; color: var(--accent); margin-bottom: 25px;">SISTEMA DE GESTÃO DE MATERIAIS</p>
             <input id="login_mat" type="text" placeholder="Matrícula">
             <input id="login_pass" type="password" placeholder="Senha">
-            <button id="btn_entrar" onclick="executarLogin()">ACESSAR PAINEL</button>
+            <button class="btn-action" style="width: 100%;" onclick="executarLogin()">ENTRAR</button>
         </div>
     </div>
 
-    <!-- PAINEL ADM (MENU PRINCIPAL) -->
     <div id="screen-menu" class="screen">
         <div class="form-container">
-            <div style="text-align: left; margin-bottom: 20px;">
-                <h3 id="userGreeting" style="font-size: 20px;">Painel Administrativo</h3>
-                <p id="userLocation" style="font-size: 11px; color: var(--accent);"></p>
+            <div style="text-align: left; margin-bottom: 5px;">
+                <h2 id="userGreeting" style="font-weight: 500;">Olá, Usuário</h2>
+                <p id="userLocation" style="font-size: 12px; color: var(--accent); opacity: 0.8;"></p>
             </div>
 
             <div class="grid-dashboard">
-                <button onclick="mudarTela('screen-osm')"><span>📋</span> Gerar OSM</button>
-                <button onclick="abrirProgramada()" style="background: #1a1f3c; color: #fff;"><span>📅</span> Programada</button>
-                <button onclick="mudarTela('screen-conversor')" style="background: #1a1f3c; color: var(--accent);"><span>⚖️</span> Conversor KG/M</button>
-                <button onclick="alert('Histórico em desenvolvimento...')" style="background: #1a1f3c; color: #fff;"><span>🔍</span> Solicitações</button>
+                <div class="btn-dashboard" onclick="mudarTela('screen-osm')">
+                    <span>📋</span> Gerar OSM
+                </div>
+                <div class="btn-dashboard" onclick="abrirProgramada()">
+                    <span>📅</span> Programada
+                </div>
+                <div class="btn-dashboard" onclick="mudarTela('screen-conversor')">
+                    <span>⚖️</span> Conversor KG/M
+                </div>
+                <div class="btn-dashboard" onclick="alert('Módulo em desenvolvimento')">
+                    <span>🔍</span> Solicitações
+                </div>
             </div>
 
-            <button onclick="location.reload()" style="background: transparent; color: var(--danger); margin-top: 25px; border: 1px solid var(--danger); padding: 8px;">ENCERRAR SESSÃO</button>
+            <div style="text-align: center;">
+                <button class="btn-logout" style="width: 80%;" onclick="location.reload()">ENCERRAR SESSÃO</button>
+            </div>
         </div>
     </div>
 
-    <!-- TELA CONVERSOR -->
     <div id="screen-conversor" class="screen">
         <div class="form-container">
-            <h2 style="color: var(--accent); font-size: 18px;">⚖️ Conversor de Materiais</h2>
-            <span class="section-title">Selecione o Item (Padrão Técnico)</span>
+            <h2 style="color: var(--accent);">⚖️ Conversor Técnico</h2>
+            <span class="section-title">Parâmetro de Conversão</span>
             <select id="tipo_material" onchange="limparConversor()">
                 <option value="0.190">CABO MULTIPLEXADO 1X16 (0,190 kg/m)</option>
                 <option value="0.320">CABO MULTIPLEXADO 1X35 (0,320 kg/m)</option>
                 <option value="0.085">FIO DE COBRE 4MM (0,085 kg/m)</option>
-                <option value="0.450">CABO DE ALUMÍNIO CA 4/0 (0,450 kg/m)</option>
             </select>
 
-            <div class="grid-2" style="margin-top: 15px;">
+            <div class="grid-2">
                 <div>
-                    <span class="section-title">Metros (m)</span>
-                    <input type="number" id="input_metros" placeholder="Ex: 100" oninput="calcKg()">
+                    <span class="section-title">Metros</span>
+                    <input type="number" id="input_metros" oninput="calcKg()">
                 </div>
                 <div>
-                    <span class="section-title">Peso (kg)</span>
-                    <input type="number" id="input_kg" placeholder="Ex: 19" oninput="calcMetros()">
+                    <span class="section-title">Kg</span>
+                    <input type="number" id="input_kg" oninput="calcMetros()">
                 </div>
             </div>
-
-            <div id="res_calc" style="margin-top: 20px; padding: 15px; background: rgba(0,255,224,0.1); border-radius: 10px; text-align: center; color: var(--accent); font-weight: bold; border: 1px dashed var(--accent);">
-                Resultado aparecerá aqui
-            </div>
-
-            <button onclick="mudarTela('screen-menu')" class="btn-secondary" style="margin-top: 15px;">VOLTAR AO MENU</button>
+            <div id="res_calc" style="margin-top: 20px; color: var(--accent); text-align: center; font-size: 18px; font-weight: bold;">---</div>
+            <button class="btn-logout" style="border-color: #666; color: #aaa;" onclick="mudarTela('screen-menu')">VOLTAR</button>
         </div>
     </div>
 
-    <!-- TELA OSM (REQUISIÇÃO) -->
     <div id="screen-osm" class="screen">
         <div class="form-container">
-            <h2 style="color: var(--accent); font-size: 18px;">📋 Nova Requisição OSM</h2>
-            
+            <h2 style="color: var(--accent);">📋 Gerar Requisição</h2>
             <div class="grid-2">
-                <input type="text" id="osm_num" placeholder="Nº OSM">
-                <input type="text" id="viatura" placeholder="Viatura">
+                <input type="text" id="osm_num" placeholder="OSM">
+                <input type="text" id="viatura" placeholder="Placa">
             </div>
-            <input type="text" id="encarregado" placeholder="Nome do Encarregado">
+            <input type="text" id="encarregado" placeholder="Encarregado">
 
-            <span class="section-title">Buscar no Estoque (Coluna P)</span>
+            <span class="section-title">Materiais (Centro Filtro P)</span>
             <div style="position: relative;">
-                <input type="text" id="busca_sap" placeholder="Pesquisar..." onkeyup="buscarNoEstoque(this.value)">
+                <input type="text" id="busca_sap" placeholder="Buscar no estoque..." onkeyup="buscarNoEstoque(this.value)">
                 <div id="res_busca" class="search-results"></div>
             </div>
 
-            <div id="painel_qtd" style="display:none; margin-top: 10px; padding: 15px; border: 1px solid var(--accent); border-radius: 12px;">
-                <p id="label_item" style="font-size: 12px; font-weight: bold;"></p>
-                <div class="grid-2" style="margin-top: 10px;">
+            <div id="painel_qtd" style="display:none; margin-top: 15px; padding: 15px; border: 1px solid var(--accent); border-radius: 12px; background: rgba(0,255,224,0.05);">
+                <p id="label_item" style="font-size: 11px;"></p>
+                <div class="grid-2">
                     <input type="number" id="input_qtd" placeholder="Qtd">
-                    <button onclick="confirmarAdicao()">ADICIONAR</button>
+                    <button class="btn-action" style="margin-top: 10px;" onclick="confirmarAdicao()">OK</button>
                 </div>
             </div>
 
-            <span class="section-title">Materiais na Lista</span>
-            <div id="lista_itens" style="margin-bottom: 15px; min-height: 40px;"></div>
+            <div id="lista_itens" style="margin-top: 15px; max-height: 150px; overflow-y: auto;"></div>
 
-            <button id="btn_enviar" onclick="enviarPedido()">ENVIAR REQUISIÇÃO</button>
-            <button onclick="mudarTela('screen-menu')" class="btn-secondary">CANCELAR</button>
+            <button class="btn-action" style="width: 100%;" onclick="enviarPedido()">FINALIZAR ENVIO</button>
+            <button class="btn-logout" style="border-color: #666; color: #aaa; width: 100%;" onclick="mudarTela('screen-menu')">CANCELAR</button>
         </div>
     </div>
 
-    <footer>UNIDADE CAMPOS DOS GOYTACAZES</footer>
+    <footer>CAMPOS DOS GOYTACAZES - RJ</footer>
 
 <script>
+// --- LÓGICA DE DADOS ---
 const URL_USUARIOS = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/refs/heads/main/configuracoes/usuarios.csv";
 const URL_MB52 = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX";
 
 let state = { user: null, estoqueLocal: [], itemTemp: null, carrinho: [] };
 
-// LOGIN E FILTRO
 async function executarLogin() {
-    const btn = document.getElementById('btn_entrar');
     const mat = document.getElementById('login_mat').value.trim();
     const pass = document.getElementById('login_pass').value.trim();
+    if(!mat || !pass) return;
 
-    btn.innerText = "AUTENTICANDO...";
     try {
         const res = await fetch(URL_USUARIOS + "?t=" + new Date().getTime());
         const text = await res.text();
         const linhas = text.split('\n').filter(l => l.trim() !== "");
         const sep = text.includes(';') ? ';' : ',';
-        const cabecalho = linhas[0].split(sep).map(c => c.trim().toUpperCase());
+        const cab = linhas[0].split(sep).map(c => c.trim().toUpperCase());
         
-        const usuarios = linhas.slice(1).map(linha => {
-            let col = linha.split(sep);
+        const usuarios = linhas.slice(1).map(l => {
+            let col = l.split(sep);
             let obj = {};
-            cabecalho.forEach((t, i) => obj[t] = col[i] ? col[i].trim() : "");
+            cab.forEach((t, i) => obj[t] = col[i] ? col[i].trim() : "");
             return obj;
         });
 
@@ -182,8 +226,8 @@ async function executarLogin() {
             document.getElementById('userGreeting').innerText = `Olá, ${state.user.nome}`;
             document.getElementById('userLocation').innerText = `Centro: ${state.user.centro} | Ref: ${state.user.matricula}`;
             mudarTela('screen-menu');
-        } else { alert("Acesso negado."); btn.innerText = "ACESSAR PAINEL"; }
-    } catch (e) { alert("Erro de conexão."); btn.innerText = "ACESSAR PAINEL"; }
+        } else { alert("Acesso Inválido."); }
+    } catch (e) { alert("Erro de Conexão."); }
 }
 
 async function carregarEstoque() {
@@ -192,38 +236,31 @@ async function carregarEstoque() {
         const ab = await res.arrayBuffer();
         const wb = XLSX.read(new Uint8Array(ab), {type: 'array'});
         const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-
         state.estoqueLocal = raw.map(i => ({
             sap: i["Material"]?.toString().trim(),
             desc: i["Texto breve material"],
             saldo: parseFloat(i["Utilização livre"]) || 0,
-            centro: i["Centro"]?.toString().trim(), // Coluna P
+            centro: i["Centro"]?.toString().trim(),
             un: i["Unid.medida básica"]
         })).filter(i => i.centro === state.user.centro && i.saldo > 0);
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Erro MB52"); }
 }
 
-// LÓGICA CONVERSOR
+// CONVERSOR
 function calcKg() {
-    const fator = parseFloat(document.getElementById('tipo_material').value);
-    const m = parseFloat(document.getElementById('input_metros').value) || 0;
-    const res = (m * fator).toFixed(3);
-    document.getElementById('res_calc').innerText = `${res} KG`;
-    document.getElementById('input_kg').value = res;
+    const f = parseFloat(document.getElementById('tipo_material').value);
+    const v = parseFloat(document.getElementById('input_metros').value) || 0;
+    document.getElementById('res_calc').innerText = (v * f).toFixed(3) + " KG";
 }
-
 function calcMetros() {
-    const fator = parseFloat(document.getElementById('tipo_material').value);
-    const kg = parseFloat(document.getElementById('input_kg').value) || 0;
-    const res = (kg / fator).toFixed(2);
-    document.getElementById('res_calc').innerText = `${res} METROS`;
-    document.getElementById('input_metros').value = res;
+    const f = parseFloat(document.getElementById('tipo_material').value);
+    const v = parseFloat(document.getElementById('input_kg').value) || 0;
+    document.getElementById('res_calc').innerText = (v / f).toFixed(2) + " M";
 }
-
 function limparConversor() {
     document.getElementById('input_metros').value = "";
     document.getElementById('input_kg').value = "";
-    document.getElementById('res_calc').innerText = "Resultado aparecerá aqui";
+    document.getElementById('res_calc').innerText = "---";
 }
 
 // BUSCA E CARRINHO
@@ -231,11 +268,11 @@ function buscarNoEstoque(v) {
     const div = document.getElementById('res_busca');
     div.innerHTML = "";
     if(v.length < 2) { div.style.display="none"; return; }
-    const matches = state.estoqueLocal.filter(i => i.sap.includes(v) || i.desc.toLowerCase().includes(v.toLowerCase()));
-    matches.slice(0,8).forEach(item => {
+    const m = state.estoqueLocal.filter(i => i.sap.includes(v) || i.desc.toLowerCase().includes(v.toLowerCase()));
+    m.slice(0,6).forEach(item => {
         const d = document.createElement('div');
         d.className = 'result-item';
-        d.innerHTML = `<b>${item.sap}</b> - ${item.desc} (${item.saldo} ${item.un})`;
+        d.innerHTML = `<b>${item.sap}</b> - ${item.desc} (${item.saldo})`;
         d.onclick = () => {
             state.itemTemp = item;
             div.style.display="none";
@@ -245,13 +282,13 @@ function buscarNoEstoque(v) {
         };
         div.appendChild(d);
     });
-    div.style.display = matches.length ? "block" : "none";
+    div.style.display = m.length ? "block" : "none";
 }
 
 function confirmarAdicao() {
     const q = parseFloat(document.getElementById('input_qtd').value);
-    if(!q || q <= 0 || q > state.itemTemp.saldo) return alert("Verifique a quantidade.");
-    state.carrinho.push({...state.itemTemp, qtd_pedida: q});
+    if(!q || q > state.itemTemp.saldo) return alert("Erro na quantidade.");
+    state.carrinho.push({...state.itemTemp, pedido: q});
     document.getElementById('painel_qtd').style.display="none";
     document.getElementById('busca_sap').value="";
     renderCarrinho();
@@ -260,22 +297,16 @@ function confirmarAdicao() {
 function renderCarrinho() {
     document.getElementById('lista_itens').innerHTML = state.carrinho.map((item, i) => `
         <div class="carrinho-item">
-            <span>${item.sap} | ${item.qtd_pedida} ${item.un}</span>
-            <button class="btn-del" onclick="state.carrinho.splice(${i},1);renderCarrinho();">X</button>
+            <span>${item.sap} | ${item.pedido} ${item.un}</span>
+            <button onclick="state.carrinho.splice(${i},1);renderCarrinho();" style="background:none;color:red;border:none;">X</button>
         </div>
     `).join('');
 }
 
-function abrirProgramada() {
-    alert("Iniciando Módulo de Programada (Carga de Obras)...");
-    mudarTela('screen-osm'); // Por enquanto usa a mesma tela de requisição
-}
-
 function enviarPedido() {
-    if(!state.carrinho.length) return alert("Carrinho vazio.");
-    alert("Enviado com sucesso!");
+    if(!state.carrinho.length) return;
+    alert("Solicitação enviada!");
     state.carrinho = [];
-    renderCarrinho();
     mudarTela('screen-menu');
 }
 
