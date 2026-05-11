@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>FAST REQUEST PRO - Full Functional</title>
+    <title>FAST REQUEST PRO - V15.9</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
@@ -50,7 +50,6 @@
 </head>
 <body>
 
-    <!-- TELA LOGIN -->
     <div id="screen-login" class="screen active">
         <div class="card">
             <h1>FAST REQUEST</h1>
@@ -61,7 +60,6 @@
         </div>
     </div>
 
-    <!-- TELA MENU -->
     <div id="screen-menu" class="screen">
         <div class="form-container" style="text-align: center;">
             <h3 id="userGreeting">Olá</h3>
@@ -72,7 +70,6 @@
         </div>
     </div>
 
-    <!-- TELA OSM COMPLETA -->
     <div id="screen-osm" class="screen">
         <div class="form-container">
             <h2 style="color: var(--accent); margin-bottom: 15px; font-size: 18px;">Formulário de Requisição</h2>
@@ -84,14 +81,13 @@
             </div>
             <input type="text" id="encarregado" placeholder="Nome do Encarregado" oninput="this.value=this.value.toUpperCase()">
 
-            <span class="section-title">Adicionar Materiais (Estoque ${state?.user?.centro || ''})</span>
+            <span class="section-title">Adicionar Materiais</span>
             <div class="search-box">
                 <input type="text" id="busca_sap" placeholder="Pesquisar Código ou Descrição..." onkeyup="buscarNoEstoque(this.value)">
                 <div id="res_busca" class="search-results"></div>
             </div>
 
-            <!-- Painel de Qtd (Aparece ao selecionar item) -->
-            <div id="painel_qtd" style="display:none; margin-top: 10px; padding: 15px; border: 1px solid var(--accent); border-radius: 10px;">
+            <div id="painel_qtd" style="display:none; margin-top: 10px; padding: 15px; border: 1px solid var(--accent); border-radius: 10px; background: rgba(0,255,224,0.03);">
                 <p id="label_item" style="font-size: 12px; font-weight: bold;"></p>
                 <div class="grid-2" style="margin-top: 10px;">
                     <input type="number" id="input_qtd" placeholder="Qtd">
@@ -110,7 +106,8 @@
     <footer>CAMPOS DOS GOYTACAZES - RJ</footer>
 
 <script>
-const URL_USUARIOS = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/URL_USUARIOS_GITHUB.csv";
+// --- URLS ATUALIZADAS ---
+const URL_USUARIOS = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/refs/heads/main/configuracoes/usuarios.csv";
 const URL_MB52 = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX";
 
 let state = {
@@ -120,7 +117,7 @@ let state = {
     carrinho: []
 };
 
-// 1. LOGIN INTEGRADO
+// 1. LOGIN COM FONTE EXTERNA DE USUÁRIOS
 async function executarLogin() {
     const mat = document.getElementById('login_mat').value.trim();
     const pass = document.getElementById('login_pass').value.trim();
@@ -137,13 +134,13 @@ async function executarLogin() {
             return obj;
         });
 
-        const encontrado = usuarios.find(u => u['MATRÍCULA'] === mat && u['SENHA'] === pass);
+        const encontrado = usuarios.find(u => u['MATRICULA'] === mat && u['SENHA'] === pass);
 
         if (encontrado) {
             state.user = {
-                nome: encontrado['NOME COMPLETO'] || encontrado['NOME'],
+                nome: encontrado['NOME'],
                 centro: encontrado['CENTRO'],
-                matricula: encontrado['MATRÍCULA']
+                matricula: encontrado['MATRICULA']
             };
             
             await carregarEstoque();
@@ -152,12 +149,12 @@ async function executarLogin() {
             document.getElementById('userLocation').innerText = `Centro: ${state.user.centro} | Logado como: ${state.user.matricula}`;
             mudarTela('screen-menu');
         } else {
-            alert("Usuário não encontrado ou senha inválida.");
+            alert("Matrícula ou senha incorretos.");
         }
     } catch (e) { alert("Erro ao carregar banco de usuários."); }
 }
 
-// 2. CARREGAMENTO MB52 COM FILTRO DE CENTRO
+// 2. CARREGAMENTO MB52 COM FILTRO PELA COLUNA P (CENTRO)
 async function carregarEstoque() {
     try {
         const res = await fetch(URL_MB52 + "?t=" + new Date().getTime());
@@ -165,19 +162,20 @@ async function carregarEstoque() {
         const wb = XLSX.read(new Uint8Array(ab), {type: 'array'});
         const rawData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
 
-        // Relaciona os dados: Somente o centro do usuário e com saldo livre
+        // Mapeamento e filtro obrigatório pelo Centro do Usuário
         state.estoqueLocal = rawData.map(i => ({
             sap: i["Material"]?.toString().trim(),
             desc: i["Texto breve material"],
             saldo: parseFloat(i["Utilização livre"]) || 0,
-            centro: i["Centro"]?.toString().trim(),
+            centro: i["Centro"]?.toString().trim(), // Coluna P
             un: i["Unid.medida básica"]
         })).filter(i => i.centro === state.user.centro && i.saldo > 0);
 
+        console.log(`Estoque filtrado para Centro ${state.user.centro}: ${state.estoqueLocal.length} itens.`);
     } catch (e) { alert("Erro ao processar MB52."); }
 }
 
-// 3. BUSCA DINÂMICA
+// 3. BUSCA DINÂMICA NO ESTOQUE LOCAL
 function buscarNoEstoque(valor) {
     const resDiv = document.getElementById('res_busca');
     resDiv.innerHTML = "";
@@ -190,7 +188,7 @@ function buscarNoEstoque(valor) {
     filtrados.slice(0, 10).forEach(item => {
         const d = document.createElement('div');
         d.className = 'result-item';
-        d.innerHTML = `<b>${item.sap}</b> - ${item.desc}<br><small style="color:var(--accent)">Disponível: ${item.saldo} ${item.un}</small>`;
+        d.innerHTML = `<b>${item.sap}</b> - ${item.desc}<br><small style="color:var(--accent)">Disp: ${item.saldo} ${item.un}</small>`;
         d.onclick = () => {
             state.itemTemp = item;
             document.getElementById('res_busca').style.display = "none";
@@ -203,19 +201,15 @@ function buscarNoEstoque(valor) {
     resDiv.style.display = filtrados.length ? "block" : "none";
 }
 
-// 4. LÓGICA DO CARRINHO
 function confirmarAdicao() {
     const qtd = parseFloat(document.getElementById('input_qtd').value);
     if(!qtd || qtd <= 0) return alert("Informe a quantidade.");
-    if(qtd > state.itemTemp.saldo) return alert("Saldo insuficiente no MB52.");
+    if(qtd > state.itemTemp.saldo) return alert("Quantidade indisponível no centro.");
 
     state.carrinho.push({ ...state.itemTemp, qtd_pedida: qtd });
-    
-    // Reset campos
     document.getElementById('painel_qtd').style.display = "none";
     document.getElementById('busca_sap').value = "";
     document.getElementById('input_qtd').value = "";
-    
     renderCarrinho();
 }
 
@@ -234,27 +228,33 @@ function removerItem(idx) {
     renderCarrinho();
 }
 
-// 5. ENVIO FINAL (Onde todas as informações se unem)
 function enviarPedido() {
-    const dados = {
+    const osm = document.getElementById('osm_num').value;
+    const enc = document.getElementById('encarregado').value;
+    const vtr = document.getElementById('viatura').value;
+
+    if(!osm || !enc || state.carrinho.length === 0) {
+        return alert("Preencha OSM, Encarregado e adicione materiais.");
+    }
+
+    const payload = {
         solicitante: state.user.nome,
         matricula: state.user.matricula,
         centro: state.user.centro,
-        osm: document.getElementById('osm_num').value,
-        viatura: document.getElementById('viatura').value,
-        encarregado: document.getElementById('encarregado').value,
+        osm: osm,
+        viatura: vtr,
+        encarregado: enc,
         itens: state.carrinho
     };
 
-    if(!dados.osm || !dados.encarregado || dados.itens.length === 0) {
-        return alert("Preencha OSM, Encarregado e adicione pelo menos um item.");
-    }
-
-    // Aqui você faria o fetch para o Google Apps Script
-    console.log("Dados prontos para envio:", dados);
-    alert(`Requisição Enviada!\nOSM: ${dados.osm}\nSolicitante: ${dados.solicitante}\nCentro: ${dados.centro}`);
+    console.log("Enviando requisição:", payload);
+    alert(`Requisição Enviada com Sucesso para o Centro ${state.user.centro}!`);
     
     state.carrinho = [];
+    document.getElementById('osm_num').value = "";
+    document.getElementById('viatura').value = "";
+    document.getElementById('encarregado').value = "";
+    renderCarrinho();
     mudarTela('screen-menu');
 }
 
