@@ -2,377 +2,441 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>FAST REQUEST PRO - V18.0</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FAST REQUEST PRO - FullStack Edition</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
         :root {
-            --bg1:#0a0f2c; --bg2:#020417; --glass:rgba(255,255,255,.05);
-            --accent:#00ffe0; --primary:#0066ff; --danger:#ff4444; --warning:#ffcc00;
+            --bg-dark: #020417;
+            --bg-card: rgba(255, 255, 255, 0.04);
+            --accent: #00ffe0;
+            --primary: #0066ff;
+            --danger: #ff4444;
+            --success: #00ff88;
+            --text-main: #e0e0e0;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        * { box-sizing:border-box; margin: 0; padding: 0; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+
         body {
-            font-family:'Segoe UI', sans-serif;
-            background:radial-gradient(circle at top,var(--bg1),var(--bg2));
-            color:#fff; min-height: 100vh; overflow-x: hidden;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
         }
-        .screen { display:none; min-height:100vh; justify-content:center; align-items:center; padding: 20px; flex-direction: column; }
-        .screen.active { display:flex; }
-        
-        .form-container { 
-            width: 100%; max-width: 600px; 
-            background: rgba(255, 255, 255, 0.03); 
-            padding: 25px; border-radius: 20px; 
-            backdrop-filter: blur(20px); 
+
+        /* --- Utilitários de Layout --- */
+        .screen { 
+            display: none; 
+            width: 100%; 
+            max-width: 650px; 
+            padding: 20px; 
+            animation: fadeIn 0.4s ease;
+        }
+        .screen.active { display: flex; flex-direction: column; }
+
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Tipografia e Inputs --- */
+        h2 { color: var(--accent); font-weight: 600; margin-bottom: 20px; letter-spacing: -0.5px; }
+        .label-tiny { font-size: 10px; text-transform: uppercase; color: var(--accent); font-weight: 800; margin-bottom: 5px; display: block; opacity: 0.8; }
+
+        input, select, button {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 15px;
+            transition: var(--transition);
         }
 
-        .section-title { font-size: 10px; color: var(--accent); font-weight: bold; margin: 15px 0 5px 0; text-transform: uppercase; letter-spacing: 1px; display: block; }
+        input:focus { border-color: var(--accent); background: rgba(255,255,255,0.1); }
         
-        input, select, .custom-select { 
-            width:100%; padding:12px; margin-top:8px; border:none; border-radius:10px; 
-            background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.1); font-size: 13px;
+        button { 
+            border: none; font-weight: 700; cursor: pointer; text-transform: uppercase; 
+            letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 10px;
         }
         
-        input:focus { border-color: var(--accent); outline: none; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--primary)); color: #000; }
+        .btn-primary:hover { transform: scale(1.02); filter: brightness(1.1); }
         
-        .btn-action { 
-            background: linear-gradient(135deg, var(--accent), var(--primary)); 
-            color: #000; font-weight: 800; border-radius: 12px; padding: 15px; margin-top: 20px; border:none; cursor:pointer; width: 100%;
+        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #aaa; font-size: 12px; }
+        .btn-outline:hover { border-color: var(--danger); color: var(--danger); }
+
+        /* --- Grid Dashboard --- */
+        .grid-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .nav-card {
+            height: 110px; border: 1px solid rgba(255,255,255,0.05); border-radius: 18px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 10px; cursor: pointer; transition: var(--transition); background: rgba(255,255,255,0.02);
+        }
+        .nav-card:hover { border-color: var(--accent); background: rgba(0, 255, 224, 0.05); color: var(--accent); }
+        .nav-card i { font-size: 24px; }
+
+        /* --- Busca e Itens --- */
+        .search-container { position: relative; }
+        .search-popover {
+            position: absolute; width: 100%; background: #0a0f2c; z-index: 100;
+            border-radius: 10px; border: 1px solid var(--accent); display: none;
+            max-height: 200px; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .item-row { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; font-size: 13px; }
+        .item-row:hover { background: rgba(255,255,255,0.05); color: var(--accent); }
+
+        .cart-item {
+            background: rgba(0, 255, 224, 0.05); border-left: 4px solid var(--accent);
+            padding: 12px; border-radius: 8px; margin-bottom: 8px; font-size: 12px;
+            display: flex; justify-content: space-between; align-items: center;
         }
 
-        .btn-dashboard {
-            height: 100px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            gap: 8px; color: #fff; cursor: pointer; transition: 0.3s;
-        }
-        .btn-dashboard:hover { border-color: var(--accent); background: rgba(0,255,224,0.05); color: var(--accent); }
-
-        .search-results { position: absolute; background: #0a0f2c; width: 100%; z-index: 999; border: 1px solid var(--accent); display: none; max-height: 150px; overflow-y: auto; border-radius: 10px; }
-        .result-item { padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer; font-size: 12px; text-align: left; }
-
-        .carrinho-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.05); margin-top: 5px; border-radius: 8px; font-size: 11px; border-left: 3px solid var(--accent); }
-        
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .hidden { display: none; }
-        footer { position: fixed; bottom: 10px; width: 100%; text-align: center; font-size: 10px; color: rgba(255,255,255,0.3); }
+        .hidden { display: none !important; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     </style>
 </head>
 <body>
 
-    <div id="screen-login" class="screen active">
-        <div class="form-container" style="max-width: 350px; text-align: center;">
-            <h2 style="letter-spacing: 2px;">FAST REQUEST</h2>
-            <p style="font-size: 10px; color: var(--accent); margin-bottom: 20px;">WORKFLOW DE SUPRIMENTOS</p>
-            <input id="login_mat" type="text" placeholder="Matrícula">
-            <input id="login_pass" type="password" placeholder="Senha">
-            <button class="btn-action" onclick="executarLogin()">ENTRAR</button>
+    <section id="scr-login" class="screen active">
+        <div class="glass-card" style="max-width: 400px; align-self: center; text-align: center;">
+            <i class="fas fa-bolt" style="font-size: 40px; color: var(--accent); margin-bottom: 15px;"></i>
+            <h2>FAST REQUEST <span style="font-weight: 300;">PRO</span></h2>
+            <span class="label-tiny">Acesso à Unidade Campos</span>
+            <input type="text" id="in-mat" placeholder="Sua Matrícula">
+            <input type="password" id="in-pass" placeholder="Sua Senha">
+            <button class="btn-primary" onclick="Auth.login()">Entrar no Sistema</button>
         </div>
-    </div>
+    </section>
 
-    <div id="screen-menu" class="screen">
-        <div class="form-container">
-            <h3 id="userGreeting">Olá</h3>
-            <p id="userLocation" style="font-size: 11px; color: var(--accent); margin-bottom: 20px;"></p>
-            
-            <div id="grid-atendente" class="grid-2 hidden">
-                <div class="btn-dashboard" onclick="mudarTela('screen-osm')"><span>📋</span> Gerar OSM</div>
-                <div class="btn-dashboard" onclick="alert('Programada em breve')"><span>📅</span> Programada</div>
-                <div class="btn-dashboard" onclick="mudarTela('screen-conversor')"><span>⚖️</span> Conversor</div>
-                <div class="btn-dashboard" onclick="mudarTela('screen-pedidos')"><span>🔍</span> Meus Pedidos</div>
+    <section id="scr-menu" class="screen">
+        <div class="glass-card">
+            <header style="margin-bottom: 25px;">
+                <h2 id="ui-greeting">Olá, Usuário</h2>
+                <div id="ui-badge" style="font-size: 11px; color: var(--accent); background: rgba(0,255,224,0.1); display: inline-block; padding: 4px 12px; border-radius: 50px;"></div>
+            </header>
+
+            <div id="nav-atendente" class="grid-nav hidden">
+                <div class="nav-card" onclick="Router.go('scr-osm')"><i class="fas fa-file-invoice"></i> Gerar OSM</div>
+                <div class="nav-card" onclick="alert('Programada em breve')"><i class="fas fa-calendar-alt"></i> Programada</div>
+                <div class="nav-card" onclick="Router.go('scr-conversor')"><i class="fas fa-weight-hanging"></i> Conversor</div>
+                <div class="nav-card" onclick="Router.go('scr-pedidos')"><i class="fas fa-history"></i> Meus Pedidos</div>
             </div>
 
-            <div id="grid-aprovador" class="grid-2 hidden">
-                <div class="btn-dashboard" onclick="mudarTela('screen-pedidos')"><span>🔔</span> Pendentes <b id="count-pedidos" style="color:var(--danger)">0</b></div>
-                <div class="btn-dashboard" onclick="mudarTela('screen-conversor')"><span>⚖️</span> Conversor</div>
+            <div id="nav-aprovador" class="grid-nav hidden">
+                <div class="nav-card" onclick="Router.go('scr-pedidos')"><i class="fas fa-check-double"></i> Aprovações <span id="ui-count" style="color:var(--danger)">0</span></div>
+                <div class="nav-card" onclick="Router.go('scr-conversor')"><i class="fas fa-weight-hanging"></i> Conversor</div>
             </div>
 
-            <button onclick="location.reload()" style="background:transparent; border:1px solid var(--danger); color:var(--danger); padding:8px; border-radius:20px; margin-top:20px; width:100%; font-size:10px;">LOGOUT</button>
+            <button class="btn-outline" style="margin-top: 30px;" onclick="location.reload()">Sair do Sistema</button>
         </div>
-    </div>
+    </section>
 
-    <div id="screen-osm" class="screen">
-        <div class="form-container">
-            <h2 style="color: var(--accent); font-size: 18px;">Gerar Requisição OSM</h2>
+    <section id="scr-osm" class="screen">
+        <div class="glass-card">
+            <h2><i class="fas fa-file-signature"></i> Nova Requisição</h2>
             
             <div class="grid-2">
-                <div>
-                    <span class="section-title">Solicitante</span>
-                    <input type="text" id="osm_solicitante" readonly>
+                <div><span class="label-tiny">Aprovador Responsável</span>
+                    <select id="sel-aprovador" onchange="OSM.syncAprovador()"></select>
                 </div>
-                <div>
-                    <span class="section-title">Matrícula</span>
-                    <input type="text" id="osm_matricula" readonly>
+                <div><span class="label-tiny">Mat. Aprovador</span>
+                    <input type="text" id="osm-mat-aprov" readonly placeholder="...">
                 </div>
             </div>
 
             <div class="grid-2">
-                <div>
-                    <span class="section-title">Aprovador Responsável</span>
-                    <select id="osm_aprovador_nome" onchange="vincularMatriculaAprovador()"></select>
+                <div><span class="label-tiny">Nº OSM (Alfanumérico)</span>
+                    <input type="text" id="osm-id" placeholder="EX: OSM9988" oninput="this.value=this.value.toUpperCase()">
                 </div>
-                <div>
-                    <span class="section-title">Mat. Aprovador</span>
-                    <input type="text" id="osm_aprovador_mat" readonly placeholder="---">
+                <div><span class="label-tiny">Saída Geral ADM?</span>
+                    <select id="osm-adm"><option value="NÃO">NÃO</option><option value="SIM">SIM</option></select>
                 </div>
             </div>
 
-            <div class="grid-2">
-                <div>
-                    <span class="section-title">Nº OSM (Alfanumérico)</span>
-                    <input type="text" id="osm_numero" placeholder="EX: OSM123" oninput="this.value=this.value.toUpperCase()">
-                </div>
-                <div>
-                    <span class="section-title">Saída Geral ADM?</span>
-                    <select id="osm_adm">
-                        <option value="NÃO">NÃO</option>
-                        <option value="SIM">SIM</option>
-                    </select>
-                </div>
-            </div>
-
-            <span class="section-title">Tipo de Movimentação</span>
-            <select id="osm_tipo_mov">
+            <span class="label-tiny">Tipo de Movimentação</span>
+            <select id="osm-mov">
                 <option value="Z61">Z61 - Saída de Material</option>
                 <option value="Z62">Z62 - Devolução de Material</option>
                 <option value="ESTORNO">Estorno de Material</option>
                 <option value="SUCATA">Entrega de Sucata</option>
             </select>
 
-            <span class="section-title">Deseja informar a reserva?</span>
-            <select id="osm_reserva_check" onchange="document.getElementById('osm_reserva_num').classList.toggle('hidden')">
-                <option value="NÃO">NÃO</option>
-                <option value="SIM">SIM</option>
+            <span class="label-tiny">Deseja informar a reserva?</span>
+            <select id="osm-reserva-check" onchange="UI.toggle('osm-reserva-val', this.value === 'SIM')">
+                <option value="NÃO">NÃO</option><option value="SIM">SIM</option>
             </select>
-            <input type="text" id="osm_reserva_num" class="hidden" placeholder="Digite o Nº da Reserva">
+            <input type="text" id="osm-reserva-val" class="hidden" placeholder="Nº da Reserva">
 
-            <span class="section-title">Adicionar Materiais</span>
-            <div style="position: relative;">
-                <input type="text" id="busca_sap" placeholder="Pesquisar SAP ou Descrição..." onkeyup="buscarNoEstoque(this.value)">
-                <div id="res_busca" class="search-results"></div>
+            <span class="label-tiny">Adicionar Itens (Filtro Centro P)</span>
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Buscar por código ou descrição..." onkeyup="OSM.search(this.value)">
+                <div id="search-popover" class="search-popover"></div>
             </div>
 
-            <div id="painel_item" class="hidden" style="margin-top:15px; padding:15px; border:1px solid var(--accent); border-radius:10px;">
-                <p id="label_nome_item" style="font-size:11px; font-weight:bold; color:var(--accent)"></p>
+            <div id="add-panel" class="hidden" style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px dashed var(--accent);">
+                <p id="add-label" style="font-size: 12px; margin-bottom: 10px; font-weight: bold;"></p>
                 <div class="grid-2">
-                    <input type="number" id="input_qtd" placeholder="Qtd">
-                    <select id="is_transfo" onchange="togglePatrimonio(this.value)">
-                        <option value="NÃO">É Transformador? NÃO</option>
-                        <option value="SIM">SIM</option>
+                    <input type="number" id="add-qtd" placeholder="Quantidade">
+                    <select id="add-trafo" onchange="UI.toggle('add-pat', this.value==='SIM')">
+                        <option value="NÃO">É Transformador? NÃO</option><option value="SIM">SIM</option>
                     </select>
                 </div>
-                <input type="text" id="input_patrimonio" class="hidden" placeholder="Digite o Patrimônio do Trafo">
-                <button class="btn-action" style="padding:8px; font-size:12px;" onclick="adicionarAoCarrinho()">ADICIONAR ITEM</button>
+                <input type="text" id="add-pat" class="hidden" placeholder="Patrimônio do Trafo">
+                <button class="btn-primary" style="padding: 8px; font-size: 12px;" onclick="OSM.addItem()">Adicionar à Lista</button>
             </div>
 
-            <div id="lista_osm" style="margin-top:15px;"></div>
+            <div id="cart-list" style="margin-top: 15px;"></div>
 
-            <button class="btn-action" onclick="confirmarPedido()">CONFIRMAR REQUISIÇÃO</button>
-            <button onclick="mudarTela('screen-menu')" style="background:transparent; color:#666; width:100%; margin-top:10px; border:none; cursor:pointer;">CANCELAR</button>
+            <button class="btn-primary" style="margin-top: 20px;" onclick="OSM.finalize()">Confirmar e Enviar para Aprovador</button>
+            <button class="btn-outline" onclick="Router.go('scr-menu')">Voltar ao Painel</button>
         </div>
-    </div>
+    </section>
 
-    <div id="screen-conversor" class="screen">
-        <div class="form-container">
-            <h2>⚖️ Conversor de Cabos</h2>
-            <select id="fator_cabo">
-                <option value="0.190">Multiplexado 1x16 (0.190)</option>
-                <option value="0.320">Multiplexado 1x35 (0.320)</option>
+    <section id="scr-conversor" class="screen">
+        <div class="glass-card">
+            <h2>⚖️ Conversor Kg x M</h2>
+            <span class="label-tiny">Tipo de Cabo</span>
+            <select id="conv-fator">
+                <option value="0.190">Multiplexado 1x16 (0.190 kg/m)</option>
+                <option value="0.320">Multiplexado 1x35 (0.320 kg/m)</option>
+                <option value="0.085">Fio de Cobre 4mm (0.085 kg/m)</option>
             </select>
             <div class="grid-2">
-                <input type="number" id="c_metros" placeholder="Metros" oninput="calcC(1)">
-                <input type="number" id="c_kg" placeholder="Kg" oninput="calcC(2)">
+                <div><span class="label-tiny">Metros</span><input type="number" id="conv-m" oninput="Tool.calc(1)"></div>
+                <div><span class="label-tiny">Quilos</span><input type="number" id="conv-k" oninput="Tool.calc(2)"></div>
             </div>
-            <button class="btn-action" onclick="mudarTela('screen-menu')">VOLTAR</button>
+            <button class="btn-outline" onclick="Router.go('scr-menu')">Voltar</button>
         </div>
-    </div>
+    </section>
 
-    <footer>UNIDADE CAMPOS - SAP GESTÃO</footer>
+    <footer style="position: fixed; bottom: 10px; width: 100%; text-align: center; font-size: 10px; opacity: 0.4;">
+        FAST REQUEST PRO v2.0 - FullStack Optimized
+    </footer>
 
-<script>
-const URL_USUARIOS = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/refs/heads/main/configuracoes/usuarios.csv";
-const URL_MB52 = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX";
-
-let state = {
-    user: null,
-    db_usuarios: [],
-    estoque: [],
-    carrinho: [],
-    itemTemp: null,
-    pedidos_simulados: [] // Simula banco de dados de pedidos
-};
-
-// 1. LOGIN E CARREGAMENTO DE PERFIS
-async function executarLogin() {
-    const mat = document.getElementById('login_mat').value.trim();
-    const pass = document.getElementById('login_pass').value.trim();
-
-    try {
-        const res = await fetch(URL_USUARIOS + "?t=" + new Date().getTime());
-        const text = await res.text();
-        const linhas = text.split('\n').filter(l => l.trim() !== "");
-        const sep = text.includes(';') ? ';' : ',';
-        const cab = linhas[0].split(sep).map(c => c.trim().toUpperCase());
-        
-        state.db_usuarios = linhas.slice(1).map(l => {
-            let col = l.split(sep);
-            let obj = {};
-            cab.forEach((t, i) => obj[t] = col[i] ? col[i].trim() : "");
-            return obj;
-        });
-
-        const found = state.db_usuarios.find(u => u.MATRICULA === mat && u.SENHA === pass);
-
-        if (found) {
-            state.user = found;
-            await carregarEstoque();
-            configurarPainel();
-        } else { alert("Usuário não encontrado!"); }
-    } catch (e) { alert("Erro de conexão com a base."); }
-}
-
-function configurarPainel() {
-    document.getElementById('userGreeting').innerText = `Olá, ${state.user.NOME}`;
-    document.getElementById('userLocation').innerText = `${state.user.PERFIL} | Centro: ${state.user.CENTRO}`;
-    
-    document.getElementById('grid-atendente').classList.add('hidden');
-    document.getElementById('grid-aprovador').classList.add('hidden');
-
-    if (state.user.PERFIL === 'ATENDENTE') {
-        document.getElementById('grid-atendente').classList.remove('hidden');
-        prepararCamposOSM();
-    } else {
-        document.getElementById('grid-aprovador').classList.remove('hidden');
-    }
-    mudarTela('screen-menu');
-}
-
-// 2. LÓGICA MÓDULO OSM
-function prepararCamposOSM() {
-    document.getElementById('osm_solicitante').value = state.user.NOME;
-    document.getElementById('osm_matricula').value = state.user.MATRICULA;
-
-    // Filtra Aprovadores do mesmo Centro
-    const aprovadores = state.db_usuarios.filter(u => u.PERFIL === 'APROVADOR' && u.CENTRO === state.user.CENTRO);
-    const select = document.getElementById('osm_aprovador_nome');
-    select.innerHTML = '<option value="">Selecione o Aprovador</option>' + 
-                       aprovadores.map(a => `<option value="${a.NOME}">${a.NOME}</option>`).join('');
-}
-
-function vincularMatriculaAprovador() {
-    const nome = document.getElementById('osm_aprovador_nome').value;
-    const aprovador = state.db_usuarios.find(u => u.NOME === nome);
-    document.getElementById('osm_aprovador_mat').value = aprovador ? aprovador.MATRICULA : "";
-}
-
-async function carregarEstoque() {
-    try {
-        const res = await fetch(URL_MB52 + "?t=" + new Date().getTime());
-        const ab = await res.arrayBuffer();
-        const wb = XLSX.read(new Uint8Array(ab), {type: 'array'});
-        const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-        state.estoque = raw.map(i => ({
-            sap: i["Material"]?.toString().trim(),
-            desc: i["Texto breve material"],
-            saldo: parseFloat(i["Utilização livre"]) || 0,
-            centro: i["Centro"]?.toString().trim()
-        })).filter(i => i.centro === state.user.CENTRO && i.saldo > 0);
-    } catch (e) { console.error("Erro MB52"); }
-}
-
-function buscarNoEstoque(v) {
-    const resDiv = document.getElementById('res_busca');
-    resDiv.innerHTML = "";
-    if(v.length < 2) { resDiv.style.display="none"; return; }
-    
-    const matches = state.estoque.filter(i => i.sap.includes(v) || i.desc.toLowerCase().includes(v.toLowerCase()));
-    matches.slice(0, 5).forEach(item => {
-        const d = document.createElement('div');
-        d.className = 'result-item';
-        d.innerHTML = `<b>${item.sap}</b> - ${item.desc} (Saldo: ${item.saldo})`;
-        d.onclick = () => {
-            state.itemTemp = item;
-            document.getElementById('busca_sap').value = item.sap;
-            resDiv.style.display = "none";
-            document.getElementById('painel_item').classList.remove('hidden');
-            document.getElementById('label_nome_item').innerText = item.desc;
+    <script>
+        /** * APP CORE STATE 
+         * Gerenciamento de estado centralizado
+         */
+        const App = {
+            state: {
+                user: null,
+                db_users: [],
+                db_stock: [],
+                cart: [],
+                itemActive: null
+            },
+            endpoints: {
+                users: "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/refs/heads/main/configuracoes/usuarios.csv",
+                stock: "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX"
+            }
         };
-        resDiv.appendChild(d);
-    });
-    resDiv.style.display = matches.length ? "block" : "none";
-}
 
-function togglePatrimonio(v) {
-    document.getElementById('input_patrimonio').classList.toggle('hidden', v === 'NÃO');
-}
+        /** * AUTH SERVICE 
+         */
+        const Auth = {
+            async login() {
+                const mat = document.getElementById('in-mat').value;
+                const pass = document.getElementById('in-pass').value;
 
-function adicionarAoCarrinho() {
-    const qtd = parseFloat(document.getElementById('input_qtd').value);
-    const trafo = document.getElementById('is_transfo').value;
-    const pat = document.getElementById('input_patrimonio').value;
+                try {
+                    const res = await fetch(App.endpoints.users + "?t=" + Date.now());
+                    const text = await res.text();
+                    const data = this.parseCSV(text);
+                    
+                    const user = data.find(u => u.MATRICULA === mat && u.SENHA === pass);
+                    if(user) {
+                        App.state.user = user;
+                        App.state.db_users = data;
+                        await DataService.loadStock();
+                        UI.initDashboard();
+                    } else {
+                        alert("Credenciais Inválidas");
+                    }
+                } catch(e) { console.error("AuthError:", e); }
+            },
 
-    if (!state.itemTemp) return alert("Selecione um material!");
-    if (!qtd || qtd <= 0) return alert("Informe a quantidade!");
-    if (qtd > state.itemTemp.saldo) return alert("Saldo insuficiente no MB52!");
-    if (state.carrinho.find(i => i.sap === state.itemTemp.sap)) return alert("Item já adicionado!");
-    if (trafo === 'SIM' && !pat) return alert("Informe o patrimônio do Trafo!");
+            parseCSV(text) {
+                const lines = text.split('\n').filter(l => l.trim());
+                const sep = text.includes(';') ? ';' : ',';
+                const headers = lines[0].split(sep).map(h => h.trim().toUpperCase());
+                return lines.slice(1).map(l => {
+                    const cols = l.split(sep);
+                    let obj = {};
+                    headers.forEach((h, i) => obj[h] = cols[i]?.trim());
+                    return obj;
+                });
+            }
+        };
 
-    state.carrinho.push({
-        ...state.itemTemp,
-        qtd_pedida: qtd,
-        patrimonio: trafo === 'SIM' ? pat : "N/A"
-    });
+        /** * DATA SERVICE 
+         */
+        const DataService = {
+            async loadStock() {
+                try {
+                    const res = await fetch(App.endpoints.stock);
+                    const ab = await res.arrayBuffer();
+                    const wb = XLSX.read(ab, {type: 'array'});
+                    const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                    
+                    App.state.db_stock = raw.map(i => ({
+                        sap: i["Material"]?.toString().trim(),
+                        desc: i["Texto breve material"],
+                        saldo: parseFloat(i["Utilização livre"]) || 0,
+                        centro: i["Centro"]?.toString().trim()
+                    })).filter(i => i.centro === App.state.user.CENTRO && i.saldo > 0);
+                } catch(e) { alert("Falha ao carregar MB52"); }
+            }
+        };
 
-    renderCarrinho();
-    document.getElementById('painel_item').classList.add('hidden');
-    document.getElementById('busca_sap').value = "";
-}
+        /** * OSM MODULE
+         * Regras de negócio da Requisição
+         */
+        const OSM = {
+            search(val) {
+                const pop = document.getElementById('search-popover');
+                pop.innerHTML = "";
+                if(val.length < 2) { pop.style.display = "none"; return; }
 
-function renderCarrinho() {
-    document.getElementById('lista_osm').innerHTML = state.carrinho.map((i, idx) => `
-        <div class="carrinho-item">
-            <span><b>${i.sap}</b> - ${i.desc} (Qtd: ${i.qtd_pedida}) <br><small>Patrimônio: ${i.patrimonio}</small></span>
-            <button onclick="state.carrinho.splice(${idx},1);renderCarrinho()" style="background:none; border:none; color:red; cursor:pointer;">EXCLUIR</button>
-        </div>
-    `).join('');
-}
+                const matches = App.state.db_stock.filter(i => 
+                    i.sap.includes(val) || i.desc.toLowerCase().includes(val.toLowerCase())
+                );
 
-// 3. CONFIRMAÇÃO E ENVIO
-function confirmarPedido() {
-    const dados = {
-        osm: document.getElementById('osm_numero').value,
-        aprovador: document.getElementById('osm_aprovador_mat').value,
-        atendente: state.user.MATRICULA,
-        tipo: document.getElementById('osm_tipo_mov').value,
-        adm: document.getElementById('osm_adm').value,
-        itens: state.carrinho
-    };
+                matches.slice(0,6).forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'item-row';
+                    div.innerHTML = `<b>${item.sap}</b> - ${item.desc} | <span style="color:var(--accent)">Disp: ${item.saldo}</span>`;
+                    div.onclick = () => this.selectItem(item);
+                    pop.appendChild(div);
+                });
+                pop.style.display = matches.length ? "block" : "none";
+            },
 
-    if(!dados.osm || !dados.aprovador || dados.itens.length === 0) {
-        return alert("Preencha todos os campos e adicione ao menos um item!");
-    }
+            selectItem(item) {
+                App.state.itemActive = item;
+                document.getElementById('search-input').value = item.sap;
+                document.getElementById('search-popover').style.display = "none";
+                document.getElementById('add-label').innerText = item.desc;
+                document.getElementById('add-panel').classList.remove('hidden');
+            },
 
-    alert(`Pedido Enviado para Aprovador: ${document.getElementById('osm_aprovador_nome').value}`);
-    
-    // Reset
-    state.carrinho = [];
-    document.getElementById('osm_numero').value = "";
-    renderCarrinho();
-    mudarTela('screen-menu');
-}
+            addItem() {
+                const qtd = parseFloat(document.getElementById('add-qtd').value);
+                const isTrafo = document.getElementById('add-trafo').value === 'SIM';
+                const pat = document.getElementById('add-pat').value;
 
-// CONVERSOR
-function calcC(mode) {
-    const f = parseFloat(document.getElementById('fator_cabo').value);
-    if(mode === 1) document.getElementById('c_kg').value = (document.getElementById('c_metros').value * f).toFixed(3);
-    else document.getElementById('c_metros').value = (document.getElementById('c_kg').value / f).toFixed(2);
-}
+                if(!qtd || qtd > App.state.itemActive.saldo) return alert("Quantidade inválida ou acima do MB52!");
+                if(isTrafo && !pat) return alert("Patrimônio obrigatório para Trafo!");
+                if(App.state.cart.some(i => i.sap === App.state.itemActive.sap)) return alert("Item já está na lista!");
 
-function mudarTela(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-}
-</script>
+                App.state.cart.push({
+                    ...App.state.itemActive,
+                    qtd_pedida: qtd,
+                    patrimonio: isTrafo ? pat : "N/A"
+                });
+
+                this.renderCart();
+                UI.clearAddPanel();
+            },
+
+            renderCart() {
+                const list = document.getElementById('cart-list');
+                list.innerHTML = App.state.cart.map((i, idx) => `
+                    <div class="cart-item">
+                        <div><b>${i.sap}</b> - Qtd: ${i.qtd_pedida}<br><small>${i.desc}</small></div>
+                        <i class="fas fa-trash" style="color:var(--danger); cursor:pointer" onclick="OSM.removeItem(${idx})"></i>
+                    </div>
+                `).join('');
+            },
+
+            removeItem(idx) {
+                App.state.cart.splice(idx, 1);
+                this.renderCart();
+            },
+
+            syncAprovador() {
+                const nome = document.getElementById('sel-aprovador').value;
+                const apr = App.state.db_users.find(u => u.NOME === nome);
+                document.getElementById('osm-mat-aprov').value = apr ? apr.MATRICULA : "";
+            },
+
+            finalize() {
+                const doc = {
+                    osm: document.getElementById('osm-id').value,
+                    aprovador: document.getElementById('osm-mat-aprov').value,
+                    atendente: App.state.user.MATRICULA,
+                    itens: App.state.cart
+                };
+
+                if(!doc.osm || !doc.aprovador || !doc.itens.length) return alert("Erro: Preencha OSM, Aprovador e Itens!");
+
+                alert("Requisição enviada com sucesso para o Aprovador!");
+                App.state.cart = [];
+                this.renderCart();
+                Router.go('scr-menu');
+            }
+        };
+
+        /** * UI & ROUTER 
+         */
+        const UI = {
+            initDashboard() {
+                document.getElementById('ui-greeting').innerText = `Olá, ${App.state.user.NOME}`;
+                document.getElementById('ui-badge').innerText = App.state.user.PERFIL;
+                
+                document.getElementById('nav-atendente').classList.toggle('hidden', App.state.user.PERFIL !== 'ATENDENTE');
+                document.getElementById('nav-aprovador').classList.toggle('hidden', App.state.user.PERFIL !== 'APROVADOR');
+
+                if(App.state.user.PERFIL === 'ATENDENTE') this.setupAprovadores();
+                Router.go('scr-menu');
+            },
+
+            setupAprovadores() {
+                const aprs = App.state.db_users.filter(u => u.PERFIL === 'APROVADOR' && u.CENTRO === App.state.user.CENTRO);
+                const sel = document.getElementById('sel-aprovador');
+                sel.innerHTML = `<option value="">Selecione...</option>` + aprs.map(a => `<option value="${a.NOME}">${a.NOME}</option>`).join('');
+            },
+
+            toggle(id, show) { document.getElementById(id).classList.toggle('hidden', !show); },
+            
+            clearAddPanel() {
+                document.getElementById('add-panel').classList.add('hidden');
+                document.getElementById('add-qtd').value = "";
+                document.getElementById('add-pat').value = "";
+                document.getElementById('search-input').value = "";
+            }
+        };
+
+        const Router = {
+            go(screenId) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(screenId).classList.add('active');
+            }
+        };
+
+        const Tool = {
+            calc(mode) {
+                const f = parseFloat(document.getElementById('conv-fator').value);
+                if(mode === 1) document.getElementById('conv-k').value = (document.getElementById('conv-m').value * f).toFixed(3);
+                else document.getElementById('conv-m').value = (document.getElementById('conv-k').value / f).toFixed(2);
+            }
+        };
+    </script>
 </body>
 </html>
