@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>FAST REQUEST PRO - Vercel Integrated</title>
+    <title>FAST REQUEST PRO - V15.9.1</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
@@ -31,6 +31,7 @@
         input:focus { border-color: var(--accent); }
         
         button { background:linear-gradient(135deg,var(--accent),var(--primary)); font-weight:700; cursor:pointer; color:#000; transition: 0.3s; }
+        button:active { transform: scale(0.98); }
         
         .form-container { width: 100%; max-width: 550px; background: var(--glass); padding: 20px; border-radius: 15px; backdrop-filter: blur(10px); }
         .section-title { font-size: 11px; color: var(--accent); font-weight: bold; margin: 15px 0 5px 0; text-transform: uppercase; display: block; }
@@ -38,48 +39,52 @@
         .search-box { position: relative; }
         .search-results { position: absolute; background: #0a0f2c; width: 100%; z-index: 999; border: 1px solid var(--accent); display: none; max-height: 180px; overflow-y: auto; border-radius: 10px; }
         .result-item { padding:12px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer; font-size: 13px; text-align: left; }
-        .result-item:hover { background: rgba(0,255,224,0.1); }
-
+        
         .carrinho-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 8px; font-size: 12px; }
         .btn-del { background: var(--danger); color: white; width: 30px; padding: 5px; margin: 0; }
         
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         footer { position: fixed; bottom: 10px; width: 100%; text-align: center; font-size: 10px; color: rgba(255,255,255,0.4); }
-        
-        #loading-overlay { position: fixed; inset: 0; background: var(--bg2); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
     </style>
 </head>
 <body>
 
-    <!-- Overlay de Autenticação Vercel -->
-    <div id="loading-overlay">
-        <div style="border: 4px solid var(--accent); border-top: 4px solid transparent; width: 40px; height: 40px; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-        <p style="margin-top: 15px; font-size: 12px; letter-spacing: 2px;">AUTENTICANDO...</p>
-    </div>
-
-    <div id="screen-menu" class="screen">
-        <div class="form-container" style="text-align: center;">
-            <h3 id="userGreeting">Carregando...</h3>
-            <p id="userLocation" style="font-size: 12px; color: var(--accent); margin-bottom: 20px;"></p>
-            <button onclick="mudarTela('screen-osm')">📋 NOVA REQUISIÇÃO (OSM)</button>
-            <button onclick="window.location.href='/api/auth/logout'" style="background: transparent; color: var(--danger); margin-top: 20px; border: 1px solid var(--danger);">SAIR DO SISTEMA</button>
+    <!-- TELA DE LOGIN RESTAURADA -->
+    <div id="screen-login" class="screen active">
+        <div class="card">
+            <h1>FAST REQUEST</h1>
+            <p style="font-size: 12px; color: var(--accent); margin-bottom: 20px;">CONTROLE DE MATERIAIS MT/BT</p>
+            <input id="login_mat" type="text" placeholder="Matrícula">
+            <input id="login_pass" type="password" placeholder="Senha">
+            <button id="btn_entrar" onclick="executarLogin()">ENTRAR NO SISTEMA</button>
         </div>
     </div>
 
+    <!-- TELA MENU -->
+    <div id="screen-menu" class="screen">
+        <div class="form-container" style="text-align: center;">
+            <h3 id="userGreeting">Olá</h3>
+            <p id="userLocation" style="font-size: 12px; color: var(--accent); margin-bottom: 20px;"></p>
+            <button onclick="mudarTela('screen-osm')">📋 NOVA REQUISIÇÃO (OSM)</button>
+            <button onclick="location.reload()" style="background: transparent; color: var(--danger); margin-top: 20px; border: 1px solid var(--danger);">LOGOUT / SAIR</button>
+        </div>
+    </div>
+
+    <!-- TELA OSM -->
     <div id="screen-osm" class="screen">
         <div class="form-container">
-            <h2 style="color: var(--accent); margin-bottom: 15px; font-size: 18px;">Formulário de Requisição</h2>
+            <h2 style="color: var(--accent); margin-bottom: 15px; font-size: 18px;">Nova Requisição</h2>
             
             <span class="section-title">Dados da Operação</span>
             <div class="grid-2">
-                <input type="text" id="osm_num" placeholder="Nº OSM" oninput="this.value=this.value.toUpperCase()">
-                <input type="text" id="viatura" placeholder="Placa Viatura" oninput="this.value=this.value.toUpperCase()">
+                <input type="text" id="osm_num" placeholder="Nº OSM">
+                <input type="text" id="viatura" placeholder="Viatura">
             </div>
-            <input type="text" id="encarregado" placeholder="Nome do Encarregado" oninput="this.value=this.value.toUpperCase()">
+            <input type="text" id="encarregado" placeholder="Encarregado">
 
-            <span class="section-title">Adicionar Materiais</span>
+            <span class="section-title">Pesquisar Material</span>
             <div class="search-box">
-                <input type="text" id="busca_sap" placeholder="Pesquisar Código ou Descrição..." onkeyup="buscarNoEstoque(this.value)">
+                <input type="text" id="busca_sap" placeholder="Cód ou Descrição..." onkeyup="buscarNoEstoque(this.value)">
                 <div id="res_busca" class="search-results"></div>
             </div>
 
@@ -91,10 +96,10 @@
                 </div>
             </div>
 
-            <span class="section-title">Itens da Lista</span>
-            <div id="lista_itens" style="margin-bottom: 15px; min-height: 50px;"></div>
+            <span class="section-title">Itens Selecionados</span>
+            <div id="lista_itens" style="margin-bottom: 15px; min-height: 40px;"></div>
 
-            <button id="btn_enviar" onclick="enviarPedido()" style="margin-top: 10px;">FINALIZAR E ENVIAR</button>
+            <button id="btn_enviar" onclick="enviarPedido()">FINALIZAR REQUISIÇÃO</button>
             <button onclick="mudarTela('screen-menu')" style="background: transparent; color: #aaa;">VOLTAR</button>
         </div>
     </div>
@@ -102,44 +107,66 @@
     <footer>CAMPOS DOS GOYTACAZES - RJ</footer>
 
 <script>
+const URL_USUARIOS = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/refs/heads/main/configuracoes/usuarios.csv";
 const URL_MB52 = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX";
 
 let state = {
-    user: null, // Preenchido pelo Vercel
+    user: null,
     estoqueLocal: [],
     itemTemp: null,
     carrinho: []
 };
 
-// 1. INICIALIZAÇÃO E CAPTURA DE USUÁRIO VERCEL
-window.onload = async () => {
-    try {
-        // Exemplo: O Vercel geralmente passa dados via session ou um endpoint interno
-        // Aqui simulamos a captura do usuário logado no Vercel
-        // Substitua pelo seu método de captura (Ex: cookies ou fetch('/api/user'))
-        const session = await fetch('/api/user-data').then(res => res.json()).catch(() => null);
+// 1. LOGIN VIA CSV (Restaurado para destravar o app)
+async function executarLogin() {
+    const btn = document.getElementById('btn_entrar');
+    const mat = document.getElementById('login_mat').value.trim();
+    const pass = document.getElementById('login_pass').value.trim();
 
-        if (session) {
+    if(!mat || !pass) return alert("Preencha todos os campos.");
+    
+    btn.innerText = "VALIDANDO...";
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(URL_USUARIOS + "?t=" + new Date().getTime());
+        const text = await res.text();
+        const linhas = text.split('\n').filter(l => l.trim() !== "");
+        const separador = text.includes(';') ? ';' : ',';
+        
+        const cabecalho = linhas[0].split(separador).map(c => c.trim().toUpperCase());
+        const usuarios = linhas.slice(1).map(linha => {
+            let colunas = linha.split(separador);
+            let obj = {};
+            cabecalho.forEach((tit, i) => obj[tit] = colunas[i] ? colunas[i].trim() : "");
+            return obj;
+        });
+
+        const encontrado = usuarios.find(u => u['MATRICULA'] === mat && u['SENHA'] === pass);
+
+        if (encontrado) {
             state.user = {
-                nome: session.name,
-                matricula: session.id,
-                centro: session.centro || "3103" // Centro capturado da Coluna P na lógica de negócio
+                nome: encontrado['NOME'],
+                centro: encontrado['CENTRO'],
+                matricula: encontrado['MATRICULA']
             };
             
             await carregarEstoque();
             
             document.getElementById('userGreeting').innerText = `Olá, ${state.user.nome}`;
-            document.getElementById('userLocation').innerText = `Centro: ${state.user.centro} | ${state.user.matricula}`;
-            document.getElementById('loading-overlay').style.display = 'none';
+            document.getElementById('userLocation').innerText = `Centro: ${state.user.centro} | Matrícula: ${state.user.matricula}`;
             mudarTela('screen-menu');
         } else {
-            // Se não houver sessão Vercel, redireciona ou mostra erro
-            document.getElementById('loading-overlay').innerHTML = "<p>Acesso Negado. Faça Login via Vercel.</p>";
+            alert("Matrícula ou Senha incorreta.");
+            btn.innerText = "ENTRAR NO SISTEMA";
+            btn.disabled = false;
         }
-    } catch (e) {
-        console.error("Erro na autenticação:", e);
+    } catch (e) { 
+        alert("Erro ao acessar base de usuários."); 
+        btn.innerText = "ENTRAR NO SISTEMA";
+        btn.disabled = false;
     }
-};
+}
 
 // 2. CARREGAMENTO MB52 COM FILTRO PELA COLUNA P (CENTRO)
 async function carregarEstoque() {
@@ -153,14 +180,14 @@ async function carregarEstoque() {
             sap: i["Material"]?.toString().trim(),
             desc: i["Texto breve material"],
             saldo: parseFloat(i["Utilização livre"]) || 0,
-            centro: i["Centro"]?.toString().trim(), // Coluna P
+            centro: i["Centro"]?.toString().trim(), // Coluna P do Excel
             un: i["Unid.medida básica"]
         })).filter(i => i.centro === state.user.centro && i.saldo > 0);
 
-    } catch (e) { alert("Erro ao carregar base de estoque."); }
+    } catch (e) { alert("Erro ao processar estoque MB52."); }
 }
 
-// 3. BUSCA DINÂMICA
+// 3. BUSCA E CARRINHO
 function buscarNoEstoque(valor) {
     const resDiv = document.getElementById('res_busca');
     resDiv.innerHTML = "";
@@ -188,7 +215,7 @@ function buscarNoEstoque(valor) {
 
 function confirmarAdicao() {
     const qtd = parseFloat(document.getElementById('input_qtd').value);
-    if(!qtd || qtd <= 0 || qtd > state.itemTemp.saldo) return alert("Quantidade inválida ou acima do saldo.");
+    if(!qtd || qtd <= 0 || qtd > state.itemTemp.saldo) return alert("Qtd inválida ou acima do saldo.");
 
     state.carrinho.push({ ...state.itemTemp, qtd_pedida: qtd });
     document.getElementById('painel_qtd').style.display = "none";
@@ -201,7 +228,7 @@ function renderCarrinho() {
     const container = document.getElementById('lista_itens');
     container.innerHTML = state.carrinho.map((item, index) => `
         <div class="carrinho-item">
-            <span><b>${item.sap}</b> - ${item.desc} (x${item.qtd_pedida})</span>
+            <span>${item.sap} | ${item.qtd_pedida} ${item.un}</span>
             <button class="btn-del" onclick="removerItem(${index})">X</button>
         </div>
     `).join('');
@@ -213,24 +240,8 @@ function removerItem(idx) {
 }
 
 function enviarPedido() {
-    const payload = {
-        solicitante: state.user.nome,
-        matricula: state.user.matricula,
-        centro: state.user.centro,
-        osm: document.getElementById('osm_num').value,
-        viatura: document.getElementById('viatura').value,
-        encarregado: document.getElementById('encarregado').value,
-        itens: state.carrinho
-    };
-
-    if(!payload.osm || !payload.encarregado || state.carrinho.length === 0) {
-        return alert("Preencha todos os campos e adicione itens.");
-    }
-
-    console.log("Payload para Sheets/WhatsApp:", payload);
-    alert("Requisição enviada com sucesso!");
-    state.carrinho = [];
-    renderCarrinho();
+    if(state.carrinho.length === 0) return alert("Adicione itens.");
+    alert("Requisição pronta para envio!");
     mudarTela('screen-menu');
 }
 
@@ -239,9 +250,5 @@ function mudarTela(id) {
     document.getElementById(id).classList.add('active');
 }
 </script>
-
-<style>
-    @keyframes spin { to { transform: rotate(360deg); } }
-</style>
 </body>
 </html>
