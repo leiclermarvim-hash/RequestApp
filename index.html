@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>FAST REQUEST PRO - V15.8</title>
+    <title>FAST REQUEST PRO - Full Functional</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
@@ -15,7 +15,7 @@
         body {
             font-family:'Segoe UI', sans-serif;
             background:radial-gradient(circle at top,var(--bg1),var(--bg2));
-            color:#fff; min-height: 100vh;
+            color:#fff; min-height: 100vh; padding-bottom: 50px;
         }
         .screen { display:none; min-height:100vh; justify-content:center; align-items:center; padding: 20px; flex-direction: column; }
         .screen.active { display:flex; }
@@ -26,21 +26,26 @@
             box-shadow:0 0 30px rgba(0,255,255,.15); border: 1px solid rgba(255,255,255,0.1);
         }
         
-        input, button { width:100%; padding:14px; margin-top:10px; border:none; border-radius:12px; font-size:15px; outline: none; }
-        input { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid transparent; }
+        input, button, select { width:100%; padding:14px; margin-top:10px; border:none; border-radius:12px; font-size:14px; outline: none; }
+        input, select { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
         input:focus { border-color: var(--accent); }
-        button { background:linear-gradient(135deg,var(--accent),var(--primary)); font-weight:700; cursor:pointer; color:#000; }
-        button:disabled { filter: grayscale(1); opacity: 0.5; }
         
-        .form-section { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px; margin-bottom: 15px; width: 100%; max-width: 500px; }
-        .section-title { font-size: 11px; color: var(--accent); font-weight: bold; margin-bottom: 10px; text-transform: uppercase; display: block; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
+        button { background:linear-gradient(135deg,var(--accent),var(--primary)); font-weight:700; cursor:pointer; color:#000; transition: 0.3s; }
+        button:active { transform: scale(0.98); }
         
-        .search-results { position: absolute; background: #0a0f2c; width: 100%; left: 0; z-index: 999; border: 1px solid var(--accent); display: none; max-height: 200px; overflow-y: auto; border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        .result-item { padding:12px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer; }
+        .form-container { width: 100%; max-width: 550px; background: var(--glass); padding: 20px; border-radius: 15px; backdrop-filter: blur(10px); }
+        .section-title { font-size: 11px; color: var(--accent); font-weight: bold; margin: 15px 0 5px 0; text-transform: uppercase; display: block; }
+        
+        .search-box { position: relative; }
+        .search-results { position: absolute; background: #0a0f2c; width: 100%; z-index: 999; border: 1px solid var(--accent); display: none; max-height: 180px; overflow-y: auto; border-radius: 10px; }
+        .result-item { padding:12px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer; font-size: 13px; }
         .result-item:hover { background: rgba(0,255,224,0.1); }
 
-        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        footer { position: fixed; bottom: 10px; font-size: 10px; color: rgba(255,255,255,0.3); }
+        .carrinho-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 8px; font-size: 12px; }
+        .btn-del { background: var(--danger); color: white; width: 30px; padding: 5px; margin: 0; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        footer { position: fixed; bottom: 10px; width: 100%; text-align: center; font-size: 10px; color: rgba(255,255,255,0.4); }
     </style>
 </head>
 <body>
@@ -48,87 +53,82 @@
     <!-- TELA LOGIN -->
     <div id="screen-login" class="screen active">
         <div class="card">
-            <h1 style="margin-bottom: 5px;">FAST REQUEST</h1>
-            <p style="font-size: 12px; color: var(--accent); margin-bottom: 20px;">SISTEMA DE LOGÍSTICA INTEGRADA</p>
+            <h1>FAST REQUEST</h1>
+            <p style="font-size: 12px; color: var(--accent); margin-bottom: 20px;">CONTROLE DE MATERIAIS MT/BT</p>
             <input id="login_mat" type="text" placeholder="Matrícula">
             <input id="login_pass" type="password" placeholder="Senha">
-            <button id="btn-login" onclick="executarLogin()">ACESSAR SISTEMA</button>
+            <button onclick="executarLogin()">ENTRAR NO SISTEMA</button>
         </div>
     </div>
 
     <!-- TELA MENU -->
     <div id="screen-menu" class="screen">
-        <div class="form-section">
+        <div class="form-container" style="text-align: center;">
             <h3 id="userGreeting">Olá</h3>
-            <p id="userLocation" style="font-size: 12px; color: var(--accent); margin-bottom: 15px;"></p>
-            <button onclick="mudarTela('screen-osm')">📋 CRIAR PEDIDO (OSM)</button>
-            <button onclick="mudarTela('screen-estoque')" style="background: #222; color: #fff; margin-top: 10px;">📦 CONSULTAR MEU ESTOQUE</button>
-            <button onclick="location.reload()" style="background: transparent; color: var(--danger); margin-top: 20px; border: 1px solid var(--danger);">SAIR</button>
+            <p id="userLocation" style="font-size: 12px; color: var(--accent); margin-bottom: 20px;"></p>
+            <button onclick="mudarTela('screen-osm')">📋 NOVA REQUISIÇÃO (OSM)</button>
+            <button onclick="mudarTela('screen-estoque')" style="background: #222; color: #fff; margin-top: 10px;">📦 CONSULTAR MB52</button>
+            <button onclick="location.reload()" style="background: transparent; color: var(--danger); margin-top: 20px; border: 1px solid var(--danger);">LOGOUT</button>
         </div>
     </div>
 
-    <!-- TELA OSM -->
+    <!-- TELA OSM COMPLETA -->
     <div id="screen-osm" class="screen">
-        <div class="form-section">
-            <span class="section-title">Dados da Solicitação</span>
-            <input type="text" id="osm_number" placeholder="Nº OSM / PROJETO" oninput="this.value=this.value.toUpperCase()">
+        <div class="form-container">
+            <h2 style="color: var(--accent); margin-bottom: 15px; font-size: 18px;">Formulário de Requisição</h2>
             
-            <div style="position:relative; margin-top: 20px;">
-                <span class="section-title">Buscar Material no Centro</span>
-                <input type="text" id="input_busca_mb52" placeholder="Código SAP ou Descrição..." onkeyup="filtrarEstoque(this.value)">
-                <div id="busca_results" class="search-results"></div>
+            <span class="section-title">Dados da Operação</span>
+            <div class="grid-2">
+                <input type="text" id="osm_num" placeholder="Nº OSM" oninput="this.value=this.value.toUpperCase()">
+                <input type="text" id="viatura" placeholder="Placa Viatura" oninput="this.value=this.value.toUpperCase()">
+            </div>
+            <input type="text" id="encarregado" placeholder="Nome do Encarregado" oninput="this.value=this.value.toUpperCase()">
+
+            <span class="section-title">Adicionar Materiais (Estoque ${state?.user?.centro || ''})</span>
+            <div class="search-box">
+                <input type="text" id="busca_sap" placeholder="Pesquisar Código ou Descrição..." onkeyup="buscarNoEstoque(this.value)">
+                <div id="res_busca" class="search-results"></div>
             </div>
 
-            <div id="area_selecao" style="display:none; margin-top: 15px; padding: 15px; background: rgba(0,255,224,0.05); border-radius: 10px; border: 1px solid var(--accent);">
-                <div id="item_info" style="font-size: 13px; font-weight: bold; margin-bottom: 10px;"></div>
-                <div style="display: flex; gap: 10px;">
-                    <input type="number" id="qtd_solicitada" placeholder="Qtd" style="margin-top:0;">
-                    <button onclick="adicionarAoCarrinho()" style="margin-top:0; width: 120px;">OK</button>
+            <!-- Painel de Qtd (Aparece ao selecionar item) -->
+            <div id="painel_qtd" style="display:none; margin-top: 10px; padding: 15px; border: 1px solid var(--accent); border-radius: 10px;">
+                <p id="label_item" style="font-size: 12px; font-weight: bold;"></p>
+                <div class="grid-2" style="margin-top: 10px;">
+                    <input type="number" id="input_qtd" placeholder="Qtd">
+                    <button onclick="confirmarAdicao()">ADICIONAR</button>
                 </div>
             </div>
 
-            <div id="carrinho" style="margin-top: 20px;">
-                <span class="section-title">Itens Selecionados</span>
-                <div id="carrinho_list" style="max-height: 200px; overflow-y: auto;"></div>
-            </div>
+            <span class="section-title">Itens da Lista</span>
+            <div id="lista_itens" style="margin-bottom: 15px; min-height: 50px;"></div>
 
-            <button id="btn_finalizar" onclick="finalizarOSM()" style="margin-top: 20px;" disabled>CONFIRMAR PEDIDO</button>
-            <button onclick="mudarTela('screen-menu')" style="background:transparent; color:#aaa; margin-top: 10px;">VOLTAR</button>
+            <button id="btn_enviar" onclick="enviarPedido()" style="margin-top: 10px;">FINALIZAR E ENVIAR</button>
+            <button onclick="mudarTela('screen-menu')" style="background: transparent; color: #aaa;">VOLTAR</button>
         </div>
     </div>
 
-    <footer>V15.8.2 • Campos dos Goytacazes, RJ</footer>
+    <footer>CAMPOS DOS GOYTACAZES - RJ</footer>
 
 <script>
-// --- CONFIGURAÇÃO DE LINKS ---
-const GITHUB_CONFIG = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/URL_USUARIOS_GITHUB.csv";
-const GITHUB_MB52 = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX";
+const URL_USUARIOS = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/URL_USUARIOS_GITHUB.csv";
+const URL_MB52 = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX";
 
 let state = {
     user: null,
-    db_estoque: [],
-    selecionado: null,
+    estoqueLocal: [],
+    itemTemp: null,
     carrinho: []
 };
 
-// 1. LOGIN COM BANCO DE DADOS EM CONFIGURAÇÕES
+// 1. LOGIN INTEGRADO
 async function executarLogin() {
     const mat = document.getElementById('login_mat').value.trim();
     const pass = document.getElementById('login_pass').value.trim();
-    const btn = document.getElementById('btn-login');
-
-    if(!mat || !pass) return alert("Preencha matrícula e senha.");
-    
-    btn.disabled = true;
-    btn.innerText = "AUTENTICANDO...";
 
     try {
-        const res = await fetch(GITHUB_CONFIG + "?t=" + new Date().getTime());
+        const res = await fetch(URL_USUARIOS + "?t=" + new Date().getTime());
         const text = await res.text();
-        
-        // Processa CSV (considerando vírgula ou ponto-e-vírgula)
-        const separator = text.includes(';') ? ';' : ',';
-        const linhas = text.split('\n').map(l => l.split(separator));
+        const linhas = text.split('\n').map(l => l.split(text.includes(';') ? ';' : ','));
         const cabecalho = linhas[0].map(c => c.trim().toUpperCase());
         
         const usuarios = linhas.slice(1).map(linha => {
@@ -137,110 +137,96 @@ async function executarLogin() {
             return obj;
         });
 
-        const user = usuarios.find(u => u['MATRÍCULA'] === mat && u['SENHA'] === pass);
+        const encontrado = usuarios.find(u => u['MATRÍCULA'] === mat && u['SENHA'] === pass);
 
-        if (user) {
+        if (encontrado) {
             state.user = {
-                nome: user['NOME COMPLETO'] || user['NOME'],
-                matricula: user['MATRÍCULA'],
-                centro: user['CENTRO']
+                nome: encontrado['NOME COMPLETO'] || encontrado['NOME'],
+                centro: encontrado['CENTRO'],
+                matricula: encontrado['MATRÍCULA']
             };
             
-            await carregarEstoqueMB52(); // Só carrega o que o usuário pode ver
+            await carregarEstoque();
             
             document.getElementById('userGreeting').innerText = `Olá, ${state.user.nome}`;
-            document.getElementById('userLocation').innerText = `Centro Operacional: ${state.user.centro}`;
+            document.getElementById('userLocation').innerText = `Centro: ${state.user.centro} | Logado como: ${state.user.matricula}`;
             mudarTela('screen-menu');
         } else {
-            alert("Credenciais inválidas para este centro.");
+            alert("Usuário não encontrado ou senha inválida.");
         }
-    } catch (e) {
-        alert("Erro ao conectar com o banco de usuários.");
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "ACESSAR SISTEMA";
-    }
+    } catch (e) { alert("Erro ao carregar banco de usuários."); }
 }
 
-// 2. CARREGAR MB52 FILTRADO POR CENTRO E SALDO
-async function carregarEstoqueMB52() {
+// 2. CARREGAMENTO MB52 COM FILTRO DE CENTRO
+async function carregarEstoque() {
     try {
-        const res = await fetch(GITHUB_MB52 + "?t=" + new Date().getTime());
+        const res = await fetch(URL_MB52 + "?t=" + new Date().getTime());
         const ab = await res.arrayBuffer();
         const wb = XLSX.read(new Uint8Array(ab), {type: 'array'});
-        const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        const rawData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
 
-        // Lógica Principal: Mapeia e filtra apenas o Centro do Usuário com Saldo > 0
-        state.db_estoque = data.map(i => ({
+        // Relaciona os dados: Somente o centro do usuário e com saldo livre
+        state.estoqueLocal = rawData.map(i => ({
             sap: i["Material"]?.toString().trim(),
-            texto: i["Texto breve material"],
+            desc: i["Texto breve material"],
             saldo: parseFloat(i["Utilização livre"]) || 0,
             centro: i["Centro"]?.toString().trim(),
-            unidade: i["Unid.medida básica"]
+            un: i["Unid.medida básica"]
         })).filter(i => i.centro === state.user.centro && i.saldo > 0);
 
-        console.log(`Estoque pronto: ${state.db_estoque.length} itens no centro ${state.user.centro}`);
-    } catch (e) {
-        alert("Erro ao ler base de estoque MB52.");
-    }
+    } catch (e) { alert("Erro ao processar MB52."); }
 }
 
-// 3. BUSCA E FILTRO EM TEMPO REAL
-function filtrarEstoque(termo) {
-    const resDiv = document.getElementById('busca_results');
+// 3. BUSCA DINÂMICA
+function buscarNoEstoque(valor) {
+    const resDiv = document.getElementById('res_busca');
     resDiv.innerHTML = "";
-    if(termo.length < 2) { resDiv.style.display = 'none'; return; }
+    if(valor.length < 2) { resDiv.style.display = "none"; return; }
 
-    const busca = termo.toLowerCase();
-    const filtrados = state.db_estoque.filter(i => 
-        i.sap.includes(busca) || i.texto.toLowerCase().includes(busca)
+    const filtrados = state.estoqueLocal.filter(i => 
+        i.sap.includes(valor) || i.desc.toLowerCase().includes(valor.toLowerCase())
     );
 
     filtrados.slice(0, 10).forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'result-item';
-        div.innerHTML = `
-            <div style="font-size:13px;"><b>${item.sap}</b> - ${item.texto}</div>
-            <div style="font-size:11px; color:var(--accent);">Saldo: ${item.saldo} ${item.unidade}</div>
-        `;
-        div.onclick = () => {
-            state.selecionado = item;
-            document.getElementById('busca_results').style.display = 'none';
-            document.getElementById('input_busca_mb52').value = item.sap;
-            document.getElementById('area_selecao').style.display = 'block';
-            document.getElementById('item_info').innerText = `${item.texto} (Disponível: ${item.saldo})`;
+        const d = document.createElement('div');
+        d.className = 'result-item';
+        d.innerHTML = `<b>${item.sap}</b> - ${item.desc}<br><small style="color:var(--accent)">Disponível: ${item.saldo} ${item.un}</small>`;
+        d.onclick = () => {
+            state.itemTemp = item;
+            document.getElementById('res_busca').style.display = "none";
+            document.getElementById('busca_sap').value = item.sap;
+            document.getElementById('painel_qtd').style.display = "block";
+            document.getElementById('label_item').innerText = `${item.desc}`;
         };
-        resDiv.appendChild(div);
+        resDiv.appendChild(d);
     });
-    resDiv.style.display = filtrados.length ? 'block' : 'none';
+    resDiv.style.display = filtrados.length ? "block" : "none";
 }
 
-// 4. CARRINHO E VALIDAÇÕES
-function adicionarAoCarrinho() {
-    const qtd = parseFloat(document.getElementById('qtd_solicitada').value);
+// 4. LÓGICA DO CARRINHO
+function confirmarAdicao() {
+    const qtd = parseFloat(document.getElementById('input_qtd').value);
     if(!qtd || qtd <= 0) return alert("Informe a quantidade.");
-    if(qtd > state.selecionado.saldo) return alert("Quantidade acima do estoque disponível.");
+    if(qtd > state.itemTemp.saldo) return alert("Saldo insuficiente no MB52.");
 
-    state.carrinho.push({ ...state.selecionado, qtd_pedida: qtd });
+    state.carrinho.push({ ...state.itemTemp, qtd_pedida: qtd });
     
-    // Reset
-    document.getElementById('area_selecao').style.display = 'none';
-    document.getElementById('input_busca_mb52').value = "";
-    document.getElementById('qtd_solicitada').value = "";
+    // Reset campos
+    document.getElementById('painel_qtd').style.display = "none";
+    document.getElementById('busca_sap').value = "";
+    document.getElementById('input_qtd').value = "";
     
     renderCarrinho();
 }
 
 function renderCarrinho() {
-    const cont = document.getElementById('carrinho_list');
-    cont.innerHTML = state.carrinho.map((i, index) => `
-        <div class="item-row">
-            <div style="font-size:12px;"><b>${i.sap}</b><br>${i.texto}</div>
-            <div style="color:var(--accent); font-weight:bold;">${i.qtd_pedida}</div>
-            <button onclick="removerItem(${index})" style="width:30px; height:30px; padding:0; background:var(--danger); color:#fff; border-radius:50%; margin-left:10px;">✕</button>
+    const container = document.getElementById('lista_itens');
+    container.innerHTML = state.carrinho.map((item, index) => `
+        <div class="carrinho-item">
+            <span><b>${item.sap}</b> - ${item.desc} (x${item.qtd_pedida})</span>
+            <button class="btn-del" onclick="removerItem(${index})">X</button>
         </div>
     `).join('');
-    document.getElementById('btn_finalizar').disabled = state.carrinho.length === 0;
 }
 
 function removerItem(idx) {
@@ -248,12 +234,26 @@ function removerItem(idx) {
     renderCarrinho();
 }
 
-function finalizarOSM() {
-    const osm = document.getElementById('osm_number').value;
-    if(!osm) return alert("Número da OSM é obrigatório.");
+// 5. ENVIO FINAL (Onde todas as informações se unem)
+function enviarPedido() {
+    const dados = {
+        solicitante: state.user.nome,
+        matricula: state.user.matricula,
+        centro: state.user.centro,
+        osm: document.getElementById('osm_num').value,
+        viatura: document.getElementById('viatura').value,
+        encarregado: document.getElementById('encarregado').value,
+        itens: state.carrinho
+    };
+
+    if(!dados.osm || !dados.encarregado || dados.itens.length === 0) {
+        return alert("Preencha OSM, Encarregado e adicione pelo menos um item.");
+    }
+
+    // Aqui você faria o fetch para o Google Apps Script
+    console.log("Dados prontos para envio:", dados);
+    alert(`Requisição Enviada!\nOSM: ${dados.osm}\nSolicitante: ${dados.solicitante}\nCentro: ${dados.centro}`);
     
-    // Aqui você integraria com o seu WebApp do Google Sheets para salvar o pedido
-    alert(`Sucesso!\nPedido para OSM ${osm} gerado no centro ${state.user.centro}.`);
     state.carrinho = [];
     mudarTela('screen-menu');
 }
