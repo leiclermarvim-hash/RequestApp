@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>FAST REQUEST PRO - MB52 Only</title>
+    <title>FAST REQUEST PRO - Estoque por Centro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
@@ -12,128 +12,208 @@
             --accent:#00ffe0; --primary:#0066ff; --danger:#ff4444;
         }
         * { box-sizing:border-box; }
-        body{
-            margin:0; font-family:'Segoe UI',Roboto,sans-serif;
+        body {
+            margin:0; font-family:'Segoe UI', sans-serif;
             background:radial-gradient(circle at top,var(--bg1),var(--bg2));
             color:#fff; min-height: 100vh;
         }
-        .screen{ display:none; min-height:100vh; justify-content:center; align-items:center; padding: 20px; flex-direction: column; }
-        .screen.active{ display:flex; }
+        .screen { display:none; min-height:100vh; justify-content:center; align-items:center; padding: 20px; flex-direction: column; }
+        .screen.active { display:flex; }
         
-        .card{
+        .card {
             width:100%; max-width:380px; padding:30px; border-radius:20px;
             background:var(--glass); backdrop-filter: blur(14px); text-align:center;
             box-shadow:0 0 30px rgba(0,255,255,.25); border: 1px solid rgba(255,255,255,0.1);
         }
         
-        input, button, select { width:100%; padding:14px; margin-top:10px; border:none; border-radius:12px; font-size:15px; outline: none; }
+        input, button, select { width:100%; padding:14px; margin-top:10px; border:none; border-radius:12px; font-size:15px; outline: none; transition: 0.3s; }
         input, select { background: rgba(255,255,255,0.1); color: #fff; }
-        button{ background:linear-gradient(135deg,var(--accent),var(--primary)); font-weight:700; cursor:pointer; color:#000; }
+        button { background:linear-gradient(135deg,var(--accent),var(--primary)); font-weight:700; cursor:pointer; color:#000; }
+        button:disabled { filter: grayscale(1); cursor: not-allowed; opacity: 0.5; }
         
-        .menu{ width:100%; max-width:500px; }
-        .menu-grid{ display:grid; grid-template-columns:1fr 1fr; gap:15px; }
-        
-        .form-section { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: left; }
+        .form-section { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: left; width: 100%; max-width: 500px; }
         .section-title { font-size: 11px; color: var(--accent); font-weight: bold; margin-bottom: 10px; text-transform: uppercase; display: block; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
         
-        .material-box { border: 2px dashed var(--accent); padding: 15px; border-radius: 12px; background: rgba(0,255,224,0.05); margin-bottom: 15px; position: relative; }
         .search-results { position: absolute; background: #0a0f2c; width: 100%; left: 0; z-index: 999; border: 1px solid var(--accent); display: none; max-height: 200px; overflow-y: auto; border-radius: 10px; }
-        .result-item { padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer; font-size: 13px; }
-        .result-item:hover { background: rgba(255,255,255,0.1); }
+        .result-item { padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); cursor:pointer; }
+        .result-item:hover { background: rgba(0,255,224,0.1); }
 
-        .list-item { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 12px; }
-        .lista-container { margin-top:10px; max-height:300px; overflow-y:auto; }
-        footer{ position:fixed; bottom:10px; width:100%; text-align:center; font-size:11px; color:#aaa; pointer-events: none; }
+        .badge-centro { background: var(--primary); padding: 2px 8px; border-radius: 5px; font-size: 10px; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
-
 <body>
 
+    <!-- LOGIN -->
     <div id="screen-login" class="screen active">
         <div class="card">
             <h2>FAST REQUEST PRO</h2>
+            <p style="font-size: 12px; color: var(--accent);">Validação por Centro Operacional</p>
             <input id="login_mat" type="text" placeholder="Matrícula">
             <input id="login_pass" type="password" placeholder="Senha">
-            <button id="btn-login" onclick="login()">Entrar</button>
+            <button id="btn-login" onclick="executarLogin()">Entrar</button>
         </div>
     </div>
 
+    <!-- MENU -->
     <div id="screen-menu" class="screen">
-        <div class="menu">
-            <h3 id="infoUsuario">Menu Principal</h3>
-            <div class="menu-grid">
-                <button onclick="mudarTela('screen-osm')">📋 OSM (Pedido)</button>
-                <button onclick="mudarTela('screen-programada')">📆 Programada</button>
-            </div>
-            <button onclick="location.reload()" style="margin-top:20px; background:transparent; border:1px solid var(--danger); color:var(--danger);">Sair</button>
+        <div class="form-section">
+            <h3 id="userGreeting">Olá, Usuário</h3>
+            <p id="userLocation" style="font-size: 12px; color: var(--accent);"></p>
+            <button onclick="mudarTela('screen-osm')">📋 Iniciar Pedido OSM</button>
+            <button onclick="mudarTela('screen-estoque')" style="background: #444; color: #fff; margin-top: 10px;">📦 Ver Meu Estoque</button>
+            <button onclick="location.reload()" style="background: transparent; color: var(--danger); margin-top: 20px; border: 1px solid var(--danger);">Sair</button>
         </div>
     </div>
 
-    <!-- TELA OSM (PEDIDOS BASEADOS NO MB52) -->
+    <!-- PEDIDO OSM -->
     <div id="screen-osm" class="screen">
-        <div class="menu">
-            <h3>Nova Solicitação</h3>
-            <div class="form-section">
-                <span class="section-title">Dados Gerais</span>
-                <input type="text" id="projeto_osm" placeholder="Nº OSM / Projeto" oninput="this.value=this.value.toUpperCase()">
+        <div class="form-section" style="max-width: 550px;">
+            <span class="section-title">Nova Requisição de Material</span>
+            <input type="text" id="osm_number" placeholder="Nº da OSM ou Projeto" oninput="this.value=this.value.toUpperCase()">
+            
+            <div style="position:relative; margin-top: 15px;">
+                <label style="font-size: 12px; color: #aaa;">Buscar Material Disponível no seu Centro:</label>
+                <input type="text" id="input_busca_mb52" placeholder="Código SAP ou Nome..." onkeyup="filtrarMB52(this.value)">
+                <div id="busca_results" class="search-results"></div>
             </div>
 
-            <div class="material-box">
-                <span class="section-title">Adicionar Material (MB52)</span>
-                <div style="position:relative">
-                    <input type="text" id="busca_mb52_osm" placeholder="Cód. SAP ou Descrição..." onkeyup="buscarNoMB52(this.value, 'osm')">
-                    <div id="results_osm" class="search-results"></div>
-                </div>
-                <div id="detalhe_selecionado" style="margin-top:10px; font-size:12px; color:var(--accent); min-height: 20px;"></div>
-                
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <input type="number" id="qtd_osm" placeholder="Qtd" style="flex:1">
-                    <button onclick="adicionarItem()" style="flex:2">ADICIONAR</button>
+            <div id="area_selecao" style="display:none; margin-top: 15px; padding: 10px; background: rgba(0,255,224,0.05); border-radius: 10px;">
+                <div id="item_info" style="font-size: 13px; font-weight: bold;"></div>
+                <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+                    <input type="number" id="qtd_solicitada" placeholder="Qtd" style="flex: 1; margin-top: 0;">
+                    <button onclick="adicionarAoCarrinho()" style="flex: 1; margin-top: 0;">Adicionar</button>
                 </div>
             </div>
 
-            <div id="lista_pedido" class="form-section">
-                <span class="section-title">Itens do Pedido</span>
-                <div id="itens_container"></div>
+            <div id="carrinho" style="margin-top: 20px;">
+                <span class="section-title">Materiais na Lista</span>
+                <div id="carrinho_list"></div>
             </div>
 
-            <button onclick="finalizarPedido()">CONFIRMAR SOLICITAÇÃO</button>
-            <button onclick="mudarTela('screen-menu')" style="background:#444; color:#fff; margin-top:10px;">Voltar</button>
+            <button id="btn_finalizar" onclick="finalizarOSM()" style="margin-top: 20px;" disabled>Finalizar Pedido</button>
+            <button onclick="mudarTela('screen-menu')" style="background:transparent; color:#aaa; margin-top: 10px;">Cancelar</button>
         </div>
     </div>
-
-    <!-- TELA PROGRAMADA (APENAS CONSULTA MB52) -->
-    <div id="screen-programada" class="screen">
-        <div class="menu">
-            <h3>Consulta de Estoque</h3>
-            <input type="text" placeholder="Pesquisar no MB52..." onkeyup="buscarNoMB52(this.value, 'prog')">
-            <div id="results_prog" class="lista-container"></div>
-            <button onclick="mudarTela('screen-menu')" style="background:#444; color:#fff; margin-top:20px;">Voltar</button>
-        </div>
-    </div>
-
-    <footer>FAST REQUEST PRO • v15.6.3</footer>
 
 <script>
-const GITHUB_ESTOQUE = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX";
-let appState = { 
-    estoque: [], 
-    itemSelecionado: null,
-    listaPedido: [],
-    dadosUsuario: null 
+const GITHUB_MB52 = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX";
+let state = {
+    user: null,
+    db_estoque: [],
+    selecionado: null,
+    carrinho: []
 };
 
-// LOGIN SIMPLIFICADO (Integre com sua API se necessário)
-async function login() {
+// 1. LOGIN E CARREGAMENTO DE CONTEXTO
+async function executarLogin() {
     const mat = document.getElementById('login_mat').value;
-    if(!mat) return alert("Insira a matrícula");
+    if(!mat) return alert("Digite sua matrícula");
+
+    // Simulação de retorno da API com o dado do CENTRO do usuário
+    // Aqui você deve usar o resultado do seu fetch('/api/login')
+    state.user = {
+        nome: "Marlei Ribeiro",
+        matricula: mat,
+        centro: "3103" // Este dado é a CHAVE para a lógica
+    };
+
+    document.getElementById('userGreeting').innerText = `Olá, ${state.user.nome}`;
+    document.getElementById('userLocation').innerText = `Centro Operacional: ${state.user.centro}`;
     
-    // Simulação de login - aqui você chama seu /api/login
-    appState.dadosUsuario = { nome: "Marlei", centro: "3103" }; // Exemplo
-    document.getElementById('infoUsuario').innerText = `Olá, ${appState.dadosUsuario.nome}`;
-    
-    await carregarMB52();
+    await carregarBaseMB52();
     mudarTela('screen-menu');
+}
+
+// 2. BUSCA DO ARQUIVO MB52
+async function carregarBaseMB52() {
+    try {
+        const res = await fetch(GITHUB_MB52 + "?t=" + new Date().getTime());
+        const ab = await res.arrayBuffer();
+        const wb = XLSX.read(new Uint8Array(ab), {type: 'array'});
+        const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+
+        // MAPEAMENTO E FILTRO INICIAL: Só entra o que for do CENTRO do usuário e tiver SALDO > 0
+        state.db_estoque = data.map(i => ({
+            sap: i["Material"]?.toString().trim(),
+            texto: i["Texto breve material"],
+            saldo: parseFloat(i["Utilização livre"]) || 0,
+            centro: i["Centro"]?.toString().trim(),
+            unidade: i["Unid.medida básica"]
+        })).filter(i => i.centro === state.user.centro && i.saldo > 0);
+
+        console.log(`Logado no centro ${state.user.centro}. Itens disponíveis: ${state.db_estoque.length}`);
+    } catch (e) {
+        alert("Erro ao sincronizar estoque MB52.");
+    }
+}
+
+// 3. LÓGICA DE BUSCA FILTRADA
+function filtrarMB52(termo) {
+    const resDiv = document.getElementById('busca_results');
+    resDiv.innerHTML = "";
+    if(termo.length < 2) { resDiv.style.display = 'none'; return; }
+
+    const busca = termo.toLowerCase();
+    const filtrados = state.db_estoque.filter(i => 
+        i.sap.includes(busca) || i.texto.toLowerCase().includes(busca)
+    );
+
+    filtrados.slice(0, 15).forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'result-item';
+        div.innerHTML = `
+            <div style="font-size:13px;"><b>${item.sap}</b> - ${item.texto}</div>
+            <div style="font-size:11px; color:var(--accent);">Disponível: ${item.saldo} ${item.unidade}</div>
+        `;
+        div.onclick = () => prepararSelecao(item);
+        resDiv.appendChild(div);
+    });
+    resDiv.style.display = filtrados.length ? 'block' : 'none';
+}
+
+function prepararSelecao(item) {
+    state.selecionado = item;
+    document.getElementById('busca_results').style.display = 'none';
+    document.getElementById('input_busca_mb52').value = item.sap;
+    document.getElementById('area_selecao').style.display = 'block';
+    document.getElementById('item_info').innerText = `${item.texto} (Max: ${item.saldo})`;
+}
+
+// 4. ADICIONAR AO CARRINHO COM VALIDAÇÃO DE SALDO
+function adicionarAoCarrinho() {
+    const qtd = parseFloat(document.getElementById('qtd_solicitada').value);
+    const item = state.selecionado;
+
+    if(!qtd || qtd <= 0) return alert("Informe uma quantidade válida.");
+    if(qtd > item.saldo) return alert(`Saldo insuficiente no centro ${state.user.centro}.`);
+
+    state.carrinho.push({ ...item, qtd_pedida: qtd });
+    
+    // Reset campos
+    document.getElementById('area_selecao').style.display = 'none';
+    document.getElementById('input_busca_mb52').value = "";
+    document.getElementById('qtd_solicitada').value = "";
+    
+    atualizarInterfaceCarrinho();
+}
+
+function atualizarInterfaceCarrinho() {
+    const container = document.getElementById('carrinho_list');
+    container.innerHTML = state.carrinho.map((i, index) => `
+        <div class="item-row">
+            <div style="font-size:12px;"><b>${i.sap}</b><br>${i.texto}</div>
+            <div style="color:var(--accent); font-weight:bold;">${i.qtd_pedida}</div>
+            <button onclick="removerItem(${index})" style="width:auto; padding:5px 10px; background:var(--danger); color:#fff; margin:0;">X</button>
+        </div>
+    `).join('');
+    
+    document.getElementById('btn_finalizar').disabled = state.carrinho.length === 0;
+}
+
+function removerItem(idx) {
+    state.carrinho.splice(idx, 1);
+    atualizarInterfaceCarrinho();
 }
 
 function mudarTela(id) {
@@ -141,106 +221,12 @@ function mudarTela(id) {
     document.getElementById(id).classList.add('active');
 }
 
-// CARREGA MB52 E SALVA NO appState
-async function carregarMB52() {
-    try {
-        const res = await fetch(GITHUB_ESTOQUE + "?t=" + new Date().getTime());
-        const data = new Uint8Array(await res.arrayBuffer());
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet, { range: 0 });
-
-        // Normaliza os dados
-        appState.estoque = json.map(i => ({
-            codigo: i["Material"]?.toString().trim(),
-            descricao: i["Texto breve material"],
-            saldo: parseFloat(i["Utilização livre"]) || 0,
-            centro: i["Centro"]?.toString().trim(),
-            deposito: i["Depósito"]
-        })).filter(i => i.codigo);
-        
-        console.log("MB52 Carregado:", appState.estoque.length, "itens");
-    } catch (e) { alert("Erro ao carregar MB52 do GitHub"); }
-}
-
-// BUSCA UNIFICADA NO MB52
-function buscarNoMB52(termo, contexto) {
-    const t = termo.toLowerCase();
-    const resDiv = document.getElementById(contexto === 'osm' ? 'results_osm' : 'results_prog');
-    resDiv.innerHTML = "";
+function finalizarOSM() {
+    const osm = document.getElementById('osm_number').value;
+    if(!osm) return alert("Informe o número da OSM.");
     
-    if(t.length < 2) { resDiv.style.display = 'none'; return; }
-
-    const filtrados = appState.estoque.filter(i => 
-        i.codigo.includes(t) || i.descricao.toLowerCase().includes(t)
-    ).slice(0, 30);
-
-    filtrados.forEach(item => {
-        const div = document.createElement('div');
-        div.className = contexto === 'osm' ? 'result-item' : 'form-section';
-        div.innerHTML = `
-            <b>${item.codigo}</b> - ${item.descricao}<br>
-            <small>Centro: ${item.centro} | Disponível: <span style="color:var(--accent)">${item.saldo}</span></small>
-        `;
-        div.onclick = () => selecionarItem(item, contexto);
-        resDiv.appendChild(div);
-    });
-    resDiv.style.display = 'block';
-}
-
-function selecionarItem(item, contexto) {
-    if(contexto === 'osm') {
-        appState.itemSelecionado = item;
-        document.getElementById('busca_mb52_osm').value = item.codigo;
-        document.getElementById('detalhe_selecionado').innerHTML = 
-            `Selecionado: ${item.descricao} | Estoque: ${item.saldo} (${item.centro})`;
-        document.getElementById('results_osm').style.display = 'none';
-    }
-}
-
-function adicionarItem() {
-    const item = appState.itemSelecionado;
-    const qtd = parseFloat(document.getElementById('qtd_osm').value);
-
-    if(!item) return alert("Selecione um material da lista!");
-    if(!qtd || qtd <= 0) return alert("Informe uma quantidade válida!");
-    if(qtd > item.saldo) return alert("Quantidade superior ao saldo disponível!");
-
-    appState.listaPedido.push({ ...item, qtd_pedida: qtd });
-    
-    // Limpar campos
-    appState.itemSelecionado = null;
-    document.getElementById('busca_mb52_osm').value = "";
-    document.getElementById('qtd_osm').value = "";
-    document.getElementById('detalhe_selecionado').innerText = "";
-    
-    renderizarListaPedido();
-}
-
-function renderizarListaPedido() {
-    const container = document.getElementById('itens_container');
-    container.innerHTML = appState.listaPedido.map((item, index) => `
-        <div class="list-item">
-            <div><b>${item.codigo}</b><br>${item.descricao}</div>
-            <div style="color:var(--accent)">Qtd: ${item.qtd_pedida}</div>
-            <button onclick="removerItem(${index})" style="background:none; color:red; width:auto; margin:0; padding:5px;">✕</button>
-        </div>
-    `).join('');
-}
-
-function removerItem(index) {
-    appState.listaPedido.splice(index, 1);
-    renderizarListaPedido();
-}
-
-function finalizarPedido() {
-    if(appState.listaPedido.length === 0) return alert("Lista vazia!");
-    const osm = document.getElementById('projeto_osm').value;
-    if(!osm) return alert("Informe o número da OSM ou Projeto");
-
-    alert(`Pedido da OSM ${osm} enviado com sucesso!\n${appState.listaPedido.length} itens registrados.`);
-    appState.listaPedido = [];
-    renderizarListaPedido();
+    alert(`Pedido enviado para separação!\nCentro: ${state.user.centro}\nOSM: ${osm}\nItens: ${state.carrinho.length}`);
+    state.carrinho = [];
     mudarTela('screen-menu');
 }
 </script>
