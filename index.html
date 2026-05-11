@@ -3,440 +3,263 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FAST REQUEST PRO - FullStack Edition</title>
+    <title>FAST REQUEST PRO - V20.0 (ADMIN FULL)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
         :root {
-            --bg-dark: #020417;
-            --bg-card: rgba(255, 255, 255, 0.04);
-            --accent: #00ffe0;
-            --primary: #0066ff;
-            --danger: #ff4444;
-            --success: #00ff88;
-            --text-main: #e0e0e0;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --bg-dark: #020417; --bg-card: rgba(255, 255, 255, 0.04);
+            --accent: #00ffe0; --primary: #0066ff; --danger: #ff4444;
+            --text-main: #e0e0e0; --transition: all 0.3s ease;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; }
 
-        body {
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            overflow-x: hidden;
-        }
-
-        /* --- Utilitários de Layout --- */
-        .screen { 
-            display: none; 
-            width: 100%; 
-            max-width: 650px; 
-            padding: 20px; 
-            animation: fadeIn 0.4s ease;
-        }
+        .screen { display: none; width: 100%; max-width: 600px; padding: 20px; animation: fadeIn 0.3s ease; }
         .screen.active { display: flex; flex-direction: column; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .glass-card {
-            background: var(--bg-card);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- Tipografia e Inputs --- */
-        h2 { color: var(--accent); font-weight: 600; margin-bottom: 20px; letter-spacing: -0.5px; }
-        .label-tiny { font-size: 10px; text-transform: uppercase; color: var(--accent); font-weight: 800; margin-bottom: 5px; display: block; opacity: 0.8; }
-
-        input, select, button {
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.06);
-            color: #fff;
-            font-size: 14px;
-            margin-bottom: 15px;
-            transition: var(--transition);
-        }
-
-        input:focus { border-color: var(--accent); background: rgba(255,255,255,0.1); }
+        .glass-card { background: var(--bg-card); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
         
-        button { 
-            border: none; font-weight: 700; cursor: pointer; text-transform: uppercase; 
-            letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-        
-        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--primary)); color: #000; }
-        .btn-primary:hover { transform: scale(1.02); filter: brightness(1.1); }
-        
-        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #aaa; font-size: 12px; }
-        .btn-outline:hover { border-color: var(--danger); color: var(--danger); }
+        h2 { color: var(--accent); margin-bottom: 20px; font-size: 1.5rem; }
+        .label-tiny { font-size: 10px; text-transform: uppercase; color: var(--accent); font-weight: 800; margin: 10px 0 5px 0; display: block; }
 
-        /* --- Grid Dashboard --- */
-        .grid-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        input, select, button { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.06); color: #fff; margin-bottom: 10px; }
+        input:focus { border-color: var(--accent); }
+        
+        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--primary)); color: #000; font-weight: 700; border: none; cursor: pointer; }
+        .btn-outline { background: transparent; border: 1px solid var(--danger); color: var(--danger); cursor: pointer; margin-top: 20px; }
+
+        /* GRID DASHBOARD */
+        .grid-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
         .nav-card {
-            height: 110px; border: 1px solid rgba(255,255,255,0.05); border-radius: 18px;
+            height: 110px; border: 1px solid rgba(255,255,255,0.1); border-radius: 18px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             gap: 10px; cursor: pointer; transition: var(--transition); background: rgba(255,255,255,0.02);
         }
-        .nav-card:hover { border-color: var(--accent); background: rgba(0, 255, 224, 0.05); color: var(--accent); }
+        .nav-card:hover { border-color: var(--accent); background: rgba(0, 255, 224, 0.1); color: var(--accent); transform: translateY(-3px); }
         .nav-card i { font-size: 24px; }
 
-        /* --- Busca e Itens --- */
-        .search-container { position: relative; }
-        .search-popover {
-            position: absolute; width: 100%; background: #0a0f2c; z-index: 100;
-            border-radius: 10px; border: 1px solid var(--accent); display: none;
-            max-height: 200px; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        }
-        .item-row { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; font-size: 13px; }
-        .item-row:hover { background: rgba(255,255,255,0.05); color: var(--accent); }
-
-        .cart-item {
-            background: rgba(0, 255, 224, 0.05); border-left: 4px solid var(--accent);
-            padding: 12px; border-radius: 8px; margin-bottom: 8px; font-size: 12px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        /* BUSCA E ITENS */
+        .search-popover { position: absolute; width: 100%; background: #0a0f2c; z-index: 100; border-radius: 10px; border: 1px solid var(--accent); display: none; max-height: 200px; overflow-y: auto; }
+        .item-row { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+        .cart-item { background: rgba(0, 255, 224, 0.05); border-left: 4px solid var(--accent); padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; }
 
         .hidden { display: none !important; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     </style>
 </head>
 <body>
 
     <section id="scr-login" class="screen active">
-        <div class="glass-card" style="max-width: 400px; align-self: center; text-align: center;">
-            <i class="fas fa-bolt" style="font-size: 40px; color: var(--accent); margin-bottom: 15px;"></i>
-            <h2>FAST REQUEST <span style="font-weight: 300;">PRO</span></h2>
-            <span class="label-tiny">Acesso à Unidade Campos</span>
-            <input type="text" id="in-mat" placeholder="Sua Matrícula">
-            <input type="password" id="in-pass" placeholder="Sua Senha">
-            <button class="btn-primary" onclick="Auth.login()">Entrar no Sistema</button>
+        <div class="glass-card" style="max-width: 380px; align-self: center; text-align: center;">
+            <i class="fas fa-shield-alt" style="font-size: 40px; color: var(--accent); margin-bottom: 15px;"></i>
+            <h2>FAST REQUEST</h2>
+            <input type="text" id="in-mat" placeholder="Matrícula">
+            <input type="password" id="in-pass" placeholder="Senha">
+            <button class="btn-primary" onclick="Auth.login()">ENTRAR</button>
         </div>
     </section>
 
     <section id="scr-menu" class="screen">
         <div class="glass-card">
-            <header style="margin-bottom: 25px;">
-                <h2 id="ui-greeting">Olá, Usuário</h2>
-                <div id="ui-badge" style="font-size: 11px; color: var(--accent); background: rgba(0,255,224,0.1); display: inline-block; padding: 4px 12px; border-radius: 50px;"></div>
-            </header>
+            <h2 id="ui-greeting">Olá</h2>
+            <div id="ui-badge" style="font-size: 11px; color: var(--accent); margin-bottom: 20px;"></div>
 
-            <div id="nav-atendente" class="grid-nav hidden">
-                <div class="nav-card" onclick="Router.go('scr-osm')"><i class="fas fa-file-invoice"></i> Gerar OSM</div>
-                <div class="nav-card" onclick="alert('Programada em breve')"><i class="fas fa-calendar-alt"></i> Programada</div>
+            <div id="main-nav" class="grid-nav">
+                <div class="nav-card module-atendente" onclick="Router.go('scr-osm')"><i class="fas fa-file-invoice"></i> Gerar OSM</div>
+                <div class="nav-card module-atendente" onclick="alert('Módulo Programada em breve')"><i class="fas fa-calendar-alt"></i> Programada</div>
+                
                 <div class="nav-card" onclick="Router.go('scr-conversor')"><i class="fas fa-weight-hanging"></i> Conversor</div>
-                <div class="nav-card" onclick="Router.go('scr-pedidos')"><i class="fas fa-history"></i> Meus Pedidos</div>
+                
+                <div class="nav-card module-aprovador" onclick="Router.go('scr-pedidos')"><i class="fas fa-check-double"></i> Solicitações</div>
             </div>
 
-            <div id="nav-aprovador" class="grid-nav hidden">
-                <div class="nav-card" onclick="Router.go('scr-pedidos')"><i class="fas fa-check-double"></i> Aprovações <span id="ui-count" style="color:var(--danger)">0</span></div>
-                <div class="nav-card" onclick="Router.go('scr-conversor')"><i class="fas fa-weight-hanging"></i> Conversor</div>
-            </div>
-
-            <button class="btn-outline" style="margin-top: 30px;" onclick="location.reload()">Sair do Sistema</button>
+            <button class="btn-outline" onclick="location.reload()">LOGOUT</button>
         </div>
     </section>
 
     <section id="scr-osm" class="screen">
         <div class="glass-card">
-            <h2><i class="fas fa-file-signature"></i> Nova Requisição</h2>
-            
+            <h2>📋 Gerar OSM</h2>
             <div class="grid-2">
-                <div><span class="label-tiny">Aprovador Responsável</span>
-                    <select id="sel-aprovador" onchange="OSM.syncAprovador()"></select>
-                </div>
-                <div><span class="label-tiny">Mat. Aprovador</span>
-                    <input type="text" id="osm-mat-aprov" readonly placeholder="...">
-                </div>
+                <div><span class="label-tiny">Aprovador</span><select id="sel-aprovador" onchange="OSM.sync()"></select></div>
+                <div><span class="label-tiny">Matrícula</span><input type="text" id="osm-mat-aprov" readonly></div>
             </div>
-
             <div class="grid-2">
-                <div><span class="label-tiny">Nº OSM (Alfanumérico)</span>
-                    <input type="text" id="osm-id" placeholder="EX: OSM9988" oninput="this.value=this.value.toUpperCase()">
-                </div>
-                <div><span class="label-tiny">Saída Geral ADM?</span>
-                    <select id="osm-adm"><option value="NÃO">NÃO</option><option value="SIM">SIM</option></select>
-                </div>
+                <div><span class="label-tiny">Nº OSM</span><input type="text" id="osm-id" placeholder="ALFANUMÉRICO" oninput="this.value=this.value.toUpperCase()"></div>
+                <div><span class="label-tiny">Saída Geral ADM?</span><select id="osm-adm"><option>NÃO</option><option>SIM</option></select></div>
             </div>
-
-            <span class="label-tiny">Tipo de Movimentação</span>
+            <span class="label-tiny">Tipo Movimentação</span>
             <select id="osm-mov">
-                <option value="Z61">Z61 - Saída de Material</option>
-                <option value="Z62">Z62 - Devolução de Material</option>
-                <option value="ESTORNO">Estorno de Material</option>
-                <option value="SUCATA">Entrega de Sucata</option>
+                <option>Z61 - Saída</option>
+                <option>Z62 - Devolução</option>
+                <option>Estorno</option>
+                <option>Entrega Sucata</option>
             </select>
 
-            <span class="label-tiny">Deseja informar a reserva?</span>
-            <select id="osm-reserva-check" onchange="UI.toggle('osm-reserva-val', this.value === 'SIM')">
-                <option value="NÃO">NÃO</option><option value="SIM">SIM</option>
-            </select>
-            <input type="text" id="osm-reserva-val" class="hidden" placeholder="Nº da Reserva">
-
-            <span class="label-tiny">Adicionar Itens (Filtro Centro P)</span>
-            <div class="search-container">
-                <input type="text" id="search-input" placeholder="Buscar por código ou descrição..." onkeyup="OSM.search(this.value)">
-                <div id="search-popover" class="search-popover"></div>
+            <span class="label-tiny">Adicionar Material (Filtro Centro)</span>
+            <div style="position: relative;">
+                <input type="text" id="search-in" placeholder="Código ou Nome..." onkeyup="OSM.search(this.value)">
+                <div id="search-pop" class="search-popover"></div>
             </div>
 
-            <div id="add-panel" class="hidden" style="margin-top: 15px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px dashed var(--accent);">
-                <p id="add-label" style="font-size: 12px; margin-bottom: 10px; font-weight: bold;"></p>
+            <div id="add-panel" class="hidden" style="margin-top:10px; padding:15px; border:1px solid var(--accent); border-radius:10px;">
+                <p id="add-label" style="font-size:12px; font-weight:bold;"></p>
                 <div class="grid-2">
-                    <input type="number" id="add-qtd" placeholder="Quantidade">
-                    <select id="add-trafo" onchange="UI.toggle('add-pat', this.value==='SIM')">
-                        <option value="NÃO">É Transformador? NÃO</option><option value="SIM">SIM</option>
+                    <input type="number" id="add-qtd" placeholder="Qtd">
+                    <select id="add-trafo" onchange="document.getElementById('add-pat').classList.toggle('hidden', this.value==='NÃO')">
+                        <option value="NÃO">Trafo? NÃO</option><option value="SIM">SIM</option>
                     </select>
                 </div>
-                <input type="text" id="add-pat" class="hidden" placeholder="Patrimônio do Trafo">
-                <button class="btn-primary" style="padding: 8px; font-size: 12px;" onclick="OSM.addItem()">Adicionar à Lista</button>
+                <input type="text" id="add-pat" class="hidden" placeholder="Patrimônio">
+                <button class="btn-primary" style="font-size:12px; padding:8px;" onclick="OSM.add()">ADICIONAR</button>
             </div>
 
-            <div id="cart-list" style="margin-top: 15px;"></div>
-
-            <button class="btn-primary" style="margin-top: 20px;" onclick="OSM.finalize()">Confirmar e Enviar para Aprovador</button>
-            <button class="btn-outline" onclick="Router.go('scr-menu')">Voltar ao Painel</button>
+            <div id="cart-list" style="margin-top:15px;"></div>
+            <button class="btn-primary" onclick="OSM.finalize()">CONFIRMAR REQUISIÇÃO</button>
+            <button class="btn-outline" style="border-color:#555; color:#aaa" onclick="Router.go('scr-menu')">VOLTAR</button>
         </div>
     </section>
 
     <section id="scr-conversor" class="screen">
         <div class="glass-card">
             <h2>⚖️ Conversor Kg x M</h2>
-            <span class="label-tiny">Tipo de Cabo</span>
-            <select id="conv-fator">
-                <option value="0.190">Multiplexado 1x16 (0.190 kg/m)</option>
-                <option value="0.320">Multiplexado 1x35 (0.320 kg/m)</option>
-                <option value="0.085">Fio de Cobre 4mm (0.085 kg/m)</option>
-            </select>
+            <select id="c-fator"><option value="0.190">Multiplex 1x16 (0.190)</option><option value="0.320">Multiplex 1x35 (0.320)</option></select>
             <div class="grid-2">
-                <div><span class="label-tiny">Metros</span><input type="number" id="conv-m" oninput="Tool.calc(1)"></div>
-                <div><span class="label-tiny">Quilos</span><input type="number" id="conv-k" oninput="Tool.calc(2)"></div>
+                <input type="number" id="c-m" placeholder="Metros" oninput="Tool.calc(1)">
+                <input type="number" id="c-k" placeholder="Kg" oninput="Tool.calc(2)">
             </div>
-            <button class="btn-outline" onclick="Router.go('scr-menu')">Voltar</button>
+            <button class="btn-primary" onclick="Router.go('scr-menu')">VOLTAR</button>
         </div>
     </section>
 
-    <footer style="position: fixed; bottom: 10px; width: 100%; text-align: center; font-size: 10px; opacity: 0.4;">
-        FAST REQUEST PRO v2.0 - FullStack Optimized
-    </footer>
-
     <script>
-        /** * APP CORE STATE 
-         * Gerenciamento de estado centralizado
-         */
         const App = {
-            state: {
-                user: null,
-                db_users: [],
-                db_stock: [],
-                cart: [],
-                itemActive: null
-            },
-            endpoints: {
-                users: "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/refs/heads/main/configuracoes/usuarios.csv",
-                stock: "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX"
+            user: null, users: [], stock: [], cart: [],
+            urls: {
+                u: "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/refs/heads/main/configuracoes/usuarios.csv",
+                s: "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX"
             }
         };
 
-        /** * AUTH SERVICE 
-         */
         const Auth = {
             async login() {
-                const mat = document.getElementById('in-mat').value;
-                const pass = document.getElementById('in-pass').value;
-
+                const m = document.getElementById('in-mat').value;
+                const p = document.getElementById('in-pass').value;
                 try {
-                    const res = await fetch(App.endpoints.users + "?t=" + Date.now());
-                    const text = await res.text();
-                    const data = this.parseCSV(text);
-                    
-                    const user = data.find(u => u.MATRICULA === mat && u.SENHA === pass);
-                    if(user) {
-                        App.state.user = user;
-                        App.state.db_users = data;
-                        await DataService.loadStock();
-                        UI.initDashboard();
-                    } else {
-                        alert("Credenciais Inválidas");
-                    }
-                } catch(e) { console.error("AuthError:", e); }
+                    const r = await fetch(App.urls.u + "?t=" + Date.now());
+                    const t = await r.text();
+                    const lines = t.split('\n').filter(l => l.trim());
+                    const sep = t.includes(';') ? ';' : ',';
+                    const head = lines[0].split(sep).map(h => h.trim().toUpperCase());
+                    App.users = lines.slice(1).map(l => {
+                        let o = {}, c = l.split(sep);
+                        head.forEach((h, i) => o[h] = c[i]?.trim());
+                        return o;
+                    });
+                    App.user = App.users.find(u => u.MATRICULA === m && u.SENHA === p);
+                    if(App.user) {
+                        await this.loadStock();
+                        UI.build();
+                    } else alert("Acesso Negado");
+                } catch(e) { alert("Erro na base"); }
             },
-
-            parseCSV(text) {
-                const lines = text.split('\n').filter(l => l.trim());
-                const sep = text.includes(';') ? ';' : ',';
-                const headers = lines[0].split(sep).map(h => h.trim().toUpperCase());
-                return lines.slice(1).map(l => {
-                    const cols = l.split(sep);
-                    let obj = {};
-                    headers.forEach((h, i) => obj[h] = cols[i]?.trim());
-                    return obj;
-                });
-            }
-        };
-
-        /** * DATA SERVICE 
-         */
-        const DataService = {
             async loadStock() {
-                try {
-                    const res = await fetch(App.endpoints.stock);
-                    const ab = await res.arrayBuffer();
-                    const wb = XLSX.read(ab, {type: 'array'});
-                    const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                    
-                    App.state.db_stock = raw.map(i => ({
-                        sap: i["Material"]?.toString().trim(),
-                        desc: i["Texto breve material"],
-                        saldo: parseFloat(i["Utilização livre"]) || 0,
-                        centro: i["Centro"]?.toString().trim()
-                    })).filter(i => i.centro === App.state.user.CENTRO && i.saldo > 0);
-                } catch(e) { alert("Falha ao carregar MB52"); }
+                const r = await fetch(App.urls.s);
+                const ab = await r.arrayBuffer();
+                const wb = XLSX.read(ab, {type: 'array'});
+                const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                App.stock = raw.map(i => ({
+                    sap: i["Material"]?.toString(), desc: i["Texto breve material"],
+                    saldo: parseFloat(i["Utilização livre"]), centro: i["Centro"]?.toString()
+                })).filter(i => i.centro === App.user.CENTRO && i.saldo > 0);
             }
         };
 
-        /** * OSM MODULE
-         * Regras de negócio da Requisição
-         */
-        const OSM = {
-            search(val) {
-                const pop = document.getElementById('search-popover');
-                pop.innerHTML = "";
-                if(val.length < 2) { pop.style.display = "none"; return; }
-
-                const matches = App.state.db_stock.filter(i => 
-                    i.sap.includes(val) || i.desc.toLowerCase().includes(val.toLowerCase())
-                );
-
-                matches.slice(0,6).forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'item-row';
-                    div.innerHTML = `<b>${item.sap}</b> - ${item.desc} | <span style="color:var(--accent)">Disp: ${item.saldo}</span>`;
-                    div.onclick = () => this.selectItem(item);
-                    pop.appendChild(div);
-                });
-                pop.style.display = matches.length ? "block" : "none";
-            },
-
-            selectItem(item) {
-                App.state.itemActive = item;
-                document.getElementById('search-input').value = item.sap;
-                document.getElementById('search-popover').style.display = "none";
-                document.getElementById('add-label').innerText = item.desc;
-                document.getElementById('add-panel').classList.remove('hidden');
-            },
-
-            addItem() {
-                const qtd = parseFloat(document.getElementById('add-qtd').value);
-                const isTrafo = document.getElementById('add-trafo').value === 'SIM';
-                const pat = document.getElementById('add-pat').value;
-
-                if(!qtd || qtd > App.state.itemActive.saldo) return alert("Quantidade inválida ou acima do MB52!");
-                if(isTrafo && !pat) return alert("Patrimônio obrigatório para Trafo!");
-                if(App.state.cart.some(i => i.sap === App.state.itemActive.sap)) return alert("Item já está na lista!");
-
-                App.state.cart.push({
-                    ...App.state.itemActive,
-                    qtd_pedida: qtd,
-                    patrimonio: isTrafo ? pat : "N/A"
-                });
-
-                this.renderCart();
-                UI.clearAddPanel();
-            },
-
-            renderCart() {
-                const list = document.getElementById('cart-list');
-                list.innerHTML = App.state.cart.map((i, idx) => `
-                    <div class="cart-item">
-                        <div><b>${i.sap}</b> - Qtd: ${i.qtd_pedida}<br><small>${i.desc}</small></div>
-                        <i class="fas fa-trash" style="color:var(--danger); cursor:pointer" onclick="OSM.removeItem(${idx})"></i>
-                    </div>
-                `).join('');
-            },
-
-            removeItem(idx) {
-                App.state.cart.splice(idx, 1);
-                this.renderCart();
-            },
-
-            syncAprovador() {
-                const nome = document.getElementById('sel-aprovador').value;
-                const apr = App.state.db_users.find(u => u.NOME === nome);
-                document.getElementById('osm-mat-aprov').value = apr ? apr.MATRICULA : "";
-            },
-
-            finalize() {
-                const doc = {
-                    osm: document.getElementById('osm-id').value,
-                    aprovador: document.getElementById('osm-mat-aprov').value,
-                    atendente: App.state.user.MATRICULA,
-                    itens: App.state.cart
-                };
-
-                if(!doc.osm || !doc.aprovador || !doc.itens.length) return alert("Erro: Preencha OSM, Aprovador e Itens!");
-
-                alert("Requisição enviada com sucesso para o Aprovador!");
-                App.state.cart = [];
-                this.renderCart();
-                Router.go('scr-menu');
-            }
-        };
-
-        /** * UI & ROUTER 
-         */
         const UI = {
-            initDashboard() {
-                document.getElementById('ui-greeting').innerText = `Olá, ${App.state.user.NOME}`;
-                document.getElementById('ui-badge').innerText = App.state.user.PERFIL;
+            build() {
+                document.getElementById('ui-greeting').innerText = `Olá, ${App.user.NOME}`;
+                document.getElementById('ui-badge').innerText = `PERFIL: ${App.user.PERFIL} | CENTRO: ${App.user.CENTRO}`;
                 
-                document.getElementById('nav-atendente').classList.toggle('hidden', App.state.user.PERFIL !== 'ATENDENTE');
-                document.getElementById('nav-aprovador').classList.toggle('hidden', App.state.user.PERFIL !== 'APROVADOR');
+                const p = App.user.PERFIL.toUpperCase();
+                // LÓGICA ADM: Se for ADM, remove o "hidden" de tudo
+                if(p === 'ADM') {
+                    document.querySelectorAll('.nav-card').forEach(c => c.classList.remove('hidden'));
+                } else if(p === 'ATENDENTE') {
+                    document.querySelectorAll('.module-aprovador').forEach(c => c.classList.add('hidden'));
+                } else if(p === 'APROVADOR') {
+                    document.querySelectorAll('.module-atendente').forEach(c => c.classList.add('hidden'));
+                }
 
-                if(App.state.user.PERFIL === 'ATENDENTE') this.setupAprovadores();
+                this.setupOSM();
                 Router.go('scr-menu');
             },
-
-            setupAprovadores() {
-                const aprs = App.state.db_users.filter(u => u.PERFIL === 'APROVADOR' && u.CENTRO === App.state.user.CENTRO);
-                const sel = document.getElementById('sel-aprovador');
-                sel.innerHTML = `<option value="">Selecione...</option>` + aprs.map(a => `<option value="${a.NOME}">${a.NOME}</option>`).join('');
-            },
-
-            toggle(id, show) { document.getElementById(id).classList.toggle('hidden', !show); },
-            
-            clearAddPanel() {
-                document.getElementById('add-panel').classList.add('hidden');
-                document.getElementById('add-qtd').value = "";
-                document.getElementById('add-pat').value = "";
-                document.getElementById('search-input').value = "";
+            setupOSM() {
+                const aprs = App.users.filter(u => (u.PERFIL === 'APROVADOR' || u.PERFIL === 'ADM') && u.CENTRO === App.user.CENTRO);
+                document.getElementById('sel-aprovador').innerHTML = `<option value="">Selecione...</option>` + 
+                    aprs.map(a => `<option value="${a.NOME}">${a.NOME}</option>`).join('');
             }
         };
 
-        const Router = {
-            go(screenId) {
-                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-                document.getElementById(screenId).classList.add('active');
+        const OSM = {
+            sync() {
+                const n = document.getElementById('sel-aprovador').value;
+                const a = App.users.find(u => u.NOME === n);
+                document.getElementById('osm-mat-aprov').value = a ? a.MATRICULA : "";
+            },
+            search(v) {
+                const p = document.getElementById('search-pop');
+                p.innerHTML = "";
+                if(v.length < 2) { p.style.display="none"; return; }
+                const m = App.stock.filter(i => i.sap.includes(v) || i.desc.toLowerCase().includes(v.toLowerCase()));
+                m.slice(0,5).forEach(i => {
+                    const d = document.createElement('div');
+                    d.className = 'item-row'; d.innerText = `${i.sap} - ${i.desc} (Saldo: ${i.saldo})`;
+                    d.onclick = () => {
+                        App.itemActive = i;
+                        document.getElementById('search-in').value = i.sap;
+                        p.style.display="none";
+                        document.getElementById('add-label').innerText = i.desc;
+                        document.getElementById('add-panel').classList.remove('hidden');
+                    };
+                    p.appendChild(d);
+                });
+                p.style.display = m.length ? "block" : "none";
+            },
+            add() {
+                const q = parseFloat(document.getElementById('add-qtd').value);
+                if(!q || q > App.itemActive.saldo) return alert("Qtd inválida!");
+                App.cart.push({...App.itemActive, qtd: q, pat: document.getElementById('add-pat').value || "N/A"});
+                this.render();
+                document.getElementById('add-panel').classList.add('hidden');
+                document.getElementById('search-in').value = "";
+            },
+            render() {
+                document.getElementById('cart-list').innerHTML = App.cart.map((i, idx) => `
+                    <div class="cart-item">
+                        <span><b>${i.sap}</b> - ${i.qtd} un<br><small>${i.pat}</small></span>
+                        <i class="fas fa-trash" onclick="App.cart.splice(${idx},1);OSM.render()"></i>
+                    </div>`).join('');
+            },
+            finalize() {
+                if(!App.cart.length) return alert("Adicione itens!");
+                alert("Requisição enviada com sucesso!");
+                App.cart = []; Router.go('scr-menu');
             }
         };
 
         const Tool = {
-            calc(mode) {
-                const f = parseFloat(document.getElementById('conv-fator').value);
-                if(mode === 1) document.getElementById('conv-k').value = (document.getElementById('conv-m').value * f).toFixed(3);
-                else document.getElementById('conv-m').value = (document.getElementById('conv-k').value / f).toFixed(2);
+            calc(m) {
+                const f = parseFloat(document.getElementById('c-fator').value);
+                if(m === 1) document.getElementById('c-k').value = (document.getElementById('c-m').value * f).toFixed(3);
+                else document.getElementById('c-m').value = (document.getElementById('c-k').value / f).toFixed(2);
             }
         };
+
+        const Router = { go(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); } };
     </script>
 </body>
 </html>
