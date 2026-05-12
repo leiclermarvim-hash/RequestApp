@@ -12,7 +12,6 @@
         :root {
             --bg-dark: #020417; --bg-card: rgba(255, 255, 255, 0.04);
             --accent: #00ffe0; --primary: #0066ff; --danger: #ff4444;
-            --warning: #ffb800; --success: #00c851;
             --text-main: #e0e0e0; --transition: all 0.3s ease;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
@@ -38,19 +37,17 @@
             height: 110px; border: 1px solid rgba(255,255,255,0.1); border-radius: 18px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             gap: 10px; cursor: pointer; transition: var(--transition); background: rgba(255,255,255,0.02);
-            text-align: center; font-size: 13px; padding: 5px;
+            text-align: center; padding: 10px; font-size: 13px;
         }
         .nav-card:hover { border-color: var(--accent); background: rgba(0, 255, 224, 0.1); color: var(--accent); transform: translateY(-3px); }
         .nav-card i { font-size: 24px; }
 
+        .search-popover { position: absolute; width: 100%; background: #0a0f2c; z-index: 100; border-radius: 10px; border: 1px solid var(--accent); display: none; max-height: 200px; overflow-y: auto; }
+        .item-row { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+        .cart-item { background: rgba(0, 255, 224, 0.05); border-left: 4px solid var(--accent); padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; }
+
         .hidden { display: none !important; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        
-        /* Status Badges */
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; }
-        .status-pendente { background: var(--warning); color: #000; }
-        .status-reserva { background: var(--primary); color: #fff; }
-        .status-retirado { background: var(--success); color: #fff; }
     </style>
 </head>
 <body>
@@ -73,23 +70,24 @@
             <div id="ui-badge" style="font-size: 11px; color: var(--accent); margin-bottom: 20px;"></div>
 
             <div id="main-nav" class="grid-nav">
-                <!-- Solicitante / Adm / Aprovador -->
-                <div class="nav-card p-solic p-adm p-aprov" onclick="Router.go('scr-osm')"><i class="fas fa-file-invoice"></i> Gerar OSM</div>
-                <div class="nav-card p-solic p-adm" onclick="alert('Módulo Separar em breve')"><i class="fas fa-boxes"></i> Separar Programadas</div>
+                <!-- Itens Solicitante -->
+                <div class="nav-card p-solic p-adm" onclick="Router.go('scr-osm')"><i class="fas fa-file-invoice"></i> Gerar OSM</div>
+                <div class="nav-card p-solic p-adm" onclick="alert('Separar Programadas em breve')"><i class="fas fa-boxes"></i> Separar Programadas</div>
                 <div class="nav-card p-solic p-aprov p-adm" onclick="Router.go('scr-conversor')"><i class="fas fa-weight-hanging"></i> Conversor</div>
-                <div class="nav-card p-solic p-adm" onclick="Router.go('scr-pedidos')"><i class="fas fa-history"></i> Meus Pedidos</div>
-                
-                <!-- Aprovador / Adm -->
-                <div class="nav-card p-aprov p-adm" onclick="alert('Verificando Programadas...')"><i class="fas fa-tasks"></i> Verificar Programadas</div>
-                <div class="nav-card p-aprov p-adm" onclick="alert('Aprovando OSMs...')"><i class="fas fa-check-double"></i> Aprovar Pedidos</div>
-                <div class="nav-card p-aprov p-adm" onclick="alert('Gerar Programada')"><i class="fas fa-calendar-plus"></i> Gerar Programada</div>
+                <div class="nav-card p-solic p-adm" onclick="alert('Meus Pedidos em breve')"><i class="fas fa-list-ul"></i> Meus Pedidos</div>
 
-                <!-- Admin Only -->
-                <div class="nav-card p-adm" onclick="alert('Usuários/Materiais')"><i class="fas fa-database"></i> Cadastros</div>
-                <div class="nav-card p-adm" onclick="alert('Enviando para Github...')"><i class="fab fa-github"></i> Atualizar MB52</div>
+                <!-- Itens Aprovador -->
+                <div class="nav-card p-aprov p-adm" onclick="alert('Verificar Programadas em breve')"><i class="fas fa-search"></i> Verificar Programadas</div>
+                <div class="nav-card p-aprov p-adm" onclick="alert('Aprovar OSM em breve')"><i class="fas fa-check-circle"></i> Aprovar OSM</div>
+                <div class="nav-card p-aprov" onclick="Router.go('scr-osm')"><i class="fas fa-file-invoice"></i> Gerar OSM</div>
+
+                <!-- Itens Administrador -->
+                <div class="nav-card p-adm" onclick="alert('Verificar Usuários')"><i class="fas fa-users"></i> Usuários</div>
+                <div class="nav-card p-adm" onclick="alert('Materiais Cadastrados')"><i class="fas fa-box-open"></i> Materiais</div>
+                <div class="nav-card p-adm" onclick="alert('Enviando MB52 para Github...')"><i class="fab fa-github"></i> Atualizar MB52</div>
             </div>
 
-            <button class="btn-outline" onclick="location.reload()">LOGOUT</button>
+            <button class="btn-outline" onclick="Auth.logout()">LOGOUT</button>
         </div>
     </section>
 
@@ -101,11 +99,32 @@
                 <div><span class="label-tiny">Aprovador</span><select id="sel-aprovador" onchange="OSM.sync()"></select></div>
                 <div><span class="label-tiny">Matrícula</span><input type="text" id="osm-mat-aprov" readonly></div>
             </div>
-            <!-- ... (resto dos inputs de busca permanecem iguais) -->
-            <input type="text" id="search-in" placeholder="Buscar Material..." onkeyup="OSM.search(this.value)">
-            <div id="search-pop" class="search-popover"></div>
+            
+            <div class="grid-2">
+                <div><span class="label-tiny">Nº OSM</span><input type="text" id="osm-id" placeholder="ALFANUMÉRICO" oninput="this.value=this.value.toUpperCase()"></div>
+                <div><span class="label-tiny">Saída Geral ADM?</span><select id="osm-adm"><option>NÃO</option><option>SIM</option></select></div>
+            </div>
+
+            <span class="label-tiny">Adicionar Material</span>
+            <div style="position: relative;">
+                <input type="text" id="search-in" placeholder="Código ou Nome..." onkeyup="OSM.search(this.value)">
+                <div id="search-pop" class="search-popover"></div>
+            </div>
+
+            <div id="add-panel" class="hidden" style="margin-top:10px; padding:15px; border:1px solid var(--accent); border-radius:10px;">
+                <p id="add-label" style="font-size:12px; font-weight:bold;"></p>
+                <div class="grid-2">
+                    <input type="number" id="add-qtd" placeholder="Qtd">
+                    <select id="add-trafo" onchange="document.getElementById('add-pat').classList.toggle('hidden', this.value==='NÃO')">
+                        <option value="NÃO">Trafo? NÃO</option><option value="SIM">SIM</option>
+                    </select>
+                </div>
+                <input type="text" id="add-pat" class="hidden" placeholder="Patrimônio">
+                <button class="btn-primary" style="font-size:12px; padding:8px;" onclick="OSM.add()">ADICIONAR</button>
+            </div>
+
             <div id="cart-list" style="margin-top:15px;"></div>
-            <button class="btn-primary" onclick="OSM.finalize()">ENVIAR PARA APROVAÇÃO</button>
+            <button class="btn-primary" onclick="OSM.finalize()">CONFIRMAR REQUISIÇÃO</button>
             <button class="btn-outline" style="border-color:#555; color:#aaa" onclick="Router.go('scr-menu')">VOLTAR</button>
         </div>
     </section>
@@ -142,6 +161,7 @@
                     const lines = t.split('\n').filter(l => l.trim());
                     const sep = t.includes(';') ? ';' : ',';
                     const head = lines[0].split(sep).map(h => h.trim().toUpperCase());
+                    
                     App.users = lines.slice(1).map(l => {
                         let o = {}, c = l.split(sep);
                         head.forEach((h, i) => o[h] = c[i]?.trim());
@@ -151,11 +171,39 @@
                     App.user = App.users.find(u => u.MATRICULA === m && u.SENHA === p);
                     
                     if(App.user) {
+                        localStorage.setItem('session_fastrequest', JSON.stringify(App.user));
                         await this.loadStock();
                         UI.build();
-                    } else alert("Matrícula ou Senha incorretos");
-                } catch(e) { alert("Erro ao conectar com servidor"); }
+                    } else alert("Matrícula ou Senha inválida");
+                } catch(e) { alert("Erro ao carregar banco de dados"); }
             },
+
+            async checkSession() {
+                const saved = localStorage.getItem('session_fastrequest');
+                if(saved) {
+                    App.user = JSON.parse(saved);
+                    // Recarregar lista de usuários para ter dados de aprovadores atualizados
+                    const r = await fetch(App.urls.u + "?t=" + Date.now());
+                    const t = await r.text();
+                    const lines = t.split('\n').filter(l => l.trim());
+                    const sep = t.includes(';') ? ';' : ',';
+                    const head = lines[0].split(sep).map(h => h.trim().toUpperCase());
+                    App.users = lines.slice(1).map(l => {
+                        let o = {}, c = l.split(sep);
+                        head.forEach((h, i) => o[h] = c[i]?.trim());
+                        return o;
+                    });
+                    
+                    await this.loadStock();
+                    UI.build();
+                }
+            },
+
+            logout() {
+                localStorage.removeItem('session_fastrequest');
+                location.reload();
+            },
+
             async loadStock() {
                 try {
                     const r = await fetch(App.urls.s);
@@ -168,25 +216,26 @@
                         saldo: parseFloat(i["Utilização livre"]), 
                         centro: i["Centro"]?.toString()
                     })).filter(i => i.centro === App.user.CENTRO && i.saldo > 0);
-                } catch(e) { console.error("Estoque não carregado"); }
+                } catch(e) { console.error("Erro ao carregar estoque"); }
             }
         };
 
         const UI = {
             build() {
-                const p = App.user.PERFIL.toUpperCase();
+                const perf = App.user.PERFIL.toUpperCase();
                 document.getElementById('ui-greeting').innerText = `Olá, ${App.user.NOME}`;
-                document.getElementById('ui-badge').innerText = `PERFIL: ${p} | CENTRO: ${App.user.CENTRO}`;
+                document.getElementById('ui-badge').innerText = `PERFIL: ${perf} | CENTRO: ${App.user.CENTRO}`;
                 
-                // Controle de Acesso Visual
-                document.querySelectorAll('.nav-card').forEach(card => card.classList.add('hidden'));
-                
-                if(p === 'ADMINISTRADOR' || p === 'ADM') {
-                    document.querySelectorAll('.p-adm').forEach(el => el.classList.remove('hidden'));
-                } else if(p === 'APROVADOR') {
-                    document.querySelectorAll('.p-aprov').forEach(el => el.classList.remove('hidden'));
+                // Resetar visibilidade dos cards
+                document.querySelectorAll('.nav-card').forEach(c => c.classList.add('hidden'));
+
+                // Regras de Perfil
+                if(perf.includes('ADMINISTRADOR') || perf === 'ADM') {
+                    document.querySelectorAll('.p-adm').forEach(c => c.classList.remove('hidden'));
+                } else if(perf.includes('APROVADOR')) {
+                    document.querySelectorAll('.p-aprov').forEach(c => c.classList.remove('hidden'));
                 } else {
-                    document.querySelectorAll('.p-solic').forEach(el => el.classList.remove('hidden'));
+                    document.querySelectorAll('.p-solic').forEach(c => c.classList.remove('hidden'));
                 }
 
                 this.setupOSM();
@@ -194,7 +243,7 @@
             },
             setupOSM() {
                 const aprs = App.users.filter(u => (u.PERFIL.includes('APROVADOR') || u.PERFIL.includes('ADM')) && u.CENTRO === App.user.CENTRO);
-                document.getElementById('sel-aprovador').innerHTML = `<option value="">Selecione o Aprovador...</option>` + 
+                document.getElementById('sel-aprovador').innerHTML = `<option value="">Selecione...</option>` + 
                     aprs.map(a => `<option value="${a.NOME}">${a.NOME}</option>`).join('');
             }
         };
@@ -205,13 +254,46 @@
                 const a = App.users.find(u => u.NOME === n);
                 document.getElementById('osm-mat-aprov').value = a ? a.MATRICULA : "";
             },
+            search(v) {
+                const p = document.getElementById('search-pop');
+                p.innerHTML = "";
+                if(v.length < 2) { p.style.display="none"; return; }
+                const m = App.stock.filter(i => i.sap.includes(v) || i.desc.toLowerCase().includes(v.toLowerCase()));
+                m.slice(0,5).forEach(i => {
+                    const d = document.createElement('div');
+                    d.className = 'item-row'; d.innerText = `${i.sap} - ${i.desc} (${i.saldo})`;
+                    d.onclick = () => {
+                        App.itemActive = i;
+                        document.getElementById('search-in').value = i.sap;
+                        p.style.display="none";
+                        document.getElementById('add-label').innerText = i.desc;
+                        document.getElementById('add-panel').classList.remove('hidden');
+                    };
+                    p.appendChild(d);
+                });
+                p.style.display = m.length ? "block" : "none";
+            },
+            add() {
+                const q = parseFloat(document.getElementById('add-qtd').value);
+                if(!q || q > App.itemActive.saldo) return alert("Qtd inválida ou acima do saldo!");
+                App.cart.push({...App.itemActive, qtd: q, pat: document.getElementById('add-pat').value || "N/A"});
+                this.render();
+                document.getElementById('add-panel').classList.add('hidden');
+                document.getElementById('search-in').value = "";
+                document.getElementById('add-qtd').value = "";
+            },
+            render() {
+                document.getElementById('cart-list').innerHTML = App.cart.map((i, idx) => `
+                    <div class="cart-item">
+                        <span><b>${i.sap}</b> - ${i.qtd} un<br><small>${i.pat}</small></span>
+                        <i class="fas fa-trash" onclick="App.cart.splice(${idx},1);OSM.render()"></i>
+                    </div>`).join('');
+            },
             finalize() {
-                // Simulação do fluxo de envio
-                if(!document.getElementById('sel-aprovador').value) return alert("Selecione um aprovador!");
-                alert(`Pedido enviado! Status: AGUARDANDO APROVADOR`);
-                Router.go('scr-menu');
+                if(!App.cart.length) return alert("Adicione itens!");
+                alert("Requisição enviada ao aprovador! Status: AGUARDANDO APROVAÇÃO");
+                App.cart = []; this.render(); Router.go('scr-menu');
             }
-            // ... (funções search e add permanecem como no original)
         };
 
         const Tool = {
@@ -222,12 +304,10 @@
             }
         };
 
-        const Router = { 
-            go(id) { 
-                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
-                document.getElementById(id).classList.add('active'); 
-            } 
-        };
+        const Router = { go(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); } };
+
+        // Inicialização: Verifica se já está logado
+        window.onload = () => Auth.checkSession();
     </script>
 </body>
 </html>
