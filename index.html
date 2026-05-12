@@ -1,14 +1,14 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>FAST REQUEST PRO</title>
+    <title>FAST REQUEST PRO - Hierarchy</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
         :root {
             --bg1:#0a0f2c; --bg2:#020417; --glass:rgba(255,255,255,.08);
-            --accent:#00ffe0; --primary:#0066ff; --danger:#ff4444;
+            --accent:#00ffe0; --primary:#0066ff; --danger:#ff4444; --warning:#ffcc00;
         }
         * { box-sizing:border-box; }
         body{
@@ -29,26 +29,17 @@
         button:active { transform: scale(0.98); }
         
         .menu{ width:100%; max-width:600px; position: relative; }
-        .menu h3{ text-align:center; margin-bottom:20px; text-transform: uppercase; }
-        .menu-grid{ display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+        .menu-grid{ display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top: 20px; }
         
         .lista-container { margin-top:20px; max-height:400px; overflow-y:auto; text-align:left; padding-right: 5px; }
-        .item-estoque { 
+        .item-estoque, .item-pedido { 
             padding:12px; background:rgba(255,255,255,0.05); border-radius:10px; 
-            margin-bottom:8px; border-left: 4px solid var(--accent); cursor: pointer;
-            position: relative;
+            margin-bottom:8px; border-left: 4px solid var(--accent);
         }
-        .item-estoque:hover { background:rgba(255,255,255,0.1); }
         
-        .badge-cart {
-            position: fixed; top: 20px; right: 20px; background: var(--accent);
-            color: #000; padding: 10px 15px; border-radius: 50px; font-weight: bold;
-            cursor: pointer; box-shadow: 0 0 15px var(--accent); z-index: 100;
-        }
-
-        .item-carrinho {
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 5px;
+        .badge-perfil {
+            font-size: 10px; background: var(--accent); color: #000;
+            padding: 2px 8px; border-radius: 10px; display: inline-block; margin-top: 5px;
         }
 
         footer{ position:fixed; bottom:10px; width:100%; text-align:center; font-size:11px; color:#aaa; pointer-events: none; }
@@ -57,274 +48,174 @@
 
 <body>
 
-    <!-- BOTÃO FLUTUANTE DO CARRINHO (SÓ APARECE EM TELAS DE OPERAÇÃO) -->
-    <div id="btn-carrinho-float" class="badge-cart" style="display:none;" onclick="abrirCarrinho()">
-        🛒 <span id="cart-count">0</span> Itens
-    </div>
-
     <!-- TELA: LOGIN -->
     <div id="screen-login" class="screen active">
         <div class="card">
             <h2>FAST REQUEST PRO</h2>
-            <p style="font-size: 12px; color: var(--accent);">Acesso ao RequestApp</p>
             <input id="login_mat" type="text" placeholder="Matrícula">
             <input id="login_pass" type="password" placeholder="Senha">
-            <button id="btn-login" onclick="login()">Entrar</button>
+            <button onclick="login()">Entrar</button>
         </div>
     </div>
 
-    <!-- TELA: SELEÇÃO DE PERFIL -->
+    <!-- TELA: SELEÇÃO DE PERFIL (HIERARQUIA) -->
     <div id="screen-role" class="screen">
         <div class="card">
-            <h3>Selecione seu Perfil</h3>
-            <button onclick="selecionarPerfil('solicitante')">SOLICITANTE</button>
-            <button onclick="selecionarPerfil('atendente')" style="background:#fff; color:#000; margin-top:15px;">ATENDENTE</button>
+            <h3>Nível de Acesso</h3>
+            <button onclick="selecionarPerfil('solicitante')">SOLICITANTE (Filho)</button>
+            <button onclick="selecionarPerfil('aprovador')" style="background:#fff; color:#000;">APROVADOR (Pai)</button>
+            <button onclick="selecionarPerfil('administrador')" style="background:var(--warning); color:#000;">ADMINISTRADOR (Gestor)</button>
         </div>
     </div>
 
-    <!-- TELA: MENU PRINCIPAL -->
+    <!-- TELA: MENU DINÂMICO -->
     <div id="screen-menu" class="screen">
         <div class="menu">
-            <h3 id="infoUsuario"></h3>
-            <div class="menu-grid">
-                <button onclick="abrirOSM()">📋 Nova OSM</button>
-                <button onclick="alert('Em breve')">📆 Programada</button>
-                <button onclick="alert('Em breve')">🔁 Conversor</button>
-                <button onclick="alert('Em breve')">📂 Solicitações</button>
+            <div id="cabecalhoUsuario">
+                <h3 id="infoUsuario" style="margin-bottom:5px;"></h3>
+                <span id="roleLabel" class="badge-perfil"></span>
             </div>
+            
+            <div id="menuBotoes" class="menu-grid">
+                <!-- Botões injetados via JS -->
+            </div>
+            
             <button onclick="location.reload()" style="margin-top:30px; background:transparent; color:var(--danger); border:1px solid var(--danger);">Sair</button>
         </div>
     </div>
 
-    <!-- TELA: CONSULTA MATERIAL (FILHOS) -->
+    <!-- TELA: OSM / ESTOQUE -->
     <div id="screen-osm" class="screen">
         <div class="menu">
-            <h3>Adicionar Materiais</h3>
-            <input type="text" id="buscaMaterial" placeholder="Cód. Sap ou Descrição..." oninput="filtrarEstoque()">
+            <h3 id="tituloOSM">Gerar OSM</h3>
+            <input type="text" id="buscaMaterial" placeholder="Buscar material..." oninput="filtrarEstoque()">
             <div id="listaProdutos" class="lista-container"></div>
-            <button onclick="mudarTela('screen-menu')" style="margin-top:20px; background:#444; color:#fff;">Voltar ao Menu</button>
+            <button onclick="mudarTela('screen-menu')" style="background:#444; color:#fff;">Voltar</button>
         </div>
     </div>
 
-    <!-- TELA: CARRINHO (REVISÃO DO PAI/FILHO) -->
-    <div id="screen-carrinho" class="screen">
+    <!-- TELA: PEDIDOS (VERIFICAÇÃO) -->
+    <div id="screen-pedidos" class="screen">
         <div class="menu">
-            <h3>Revisar Solicitação</h3>
-            <div id="listaCarrinho" class="lista-container">
-                <!-- Itens adicionados aparecem aqui -->
-            </div>
-            <div id="vazioMsg" style="text-align:center; padding:20px; color:#666;">Nenhum item selecionado</div>
-            
-            <div style="margin-top:20px;">
-                <button onclick="finalizarPedido()" style="background:var(--accent); color:#000;">ENVIAR SOLICITAÇÃO</button>
-                <button onclick="mudarTela('screen-osm')" style="background:#444; color:#fff;">+ Adicionar Mais</button>
-            </div>
+            <h3 id="tituloPedidos">Pedidos</h3>
+            <div id="listaPedidosGeral" class="lista-container"></div>
+            <button onclick="mudarTela('screen-menu')" style="background:#444; color:#fff;">Voltar</button>
         </div>
     </div>
 
-    <footer>FAST REQUEST PRO • v15.6.2 • GitHub + Vercel</footer>
+    <footer>FAST REQUEST PRO • v16.0.0 • GitHub + Vercel</footer>
 
 <script>
-const GITHUB_ESTOQUE = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX";
 let appState = { 
-    usuario: null, 
+    usuario: "Usuário Teste", 
     perfil: null, 
-    dadosUsuario: null, 
     estoque: [],
-    carrinho: [] // LISTA DE FILHOS
+    carrinho: [],
+    pedidosSimulados: [
+        { id: 101, solicitante: "Matrícula 001", data: "12/05/2026", status: "PENDENTE", itens: 5 },
+        { id: 102, solicitante: "Matrícula 002", data: "12/05/2026", status: "APROVADO", itens: 2 }
+    ]
 };
 
 function mudarTela(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
-    
-    // Mostra/Esconde botão do carrinho
-    const btnCart = document.getElementById('btn-carrinho-float');
-    btnCart.style.display = (id === 'screen-osm' || id === 'screen-carrinho') ? 'block' : 'none';
 }
 
-async function login() {
-    const mat = document.getElementById('login_mat').value;
-    const pass = document.getElementById('login_pass').value;
-    const btn = document.getElementById('btn-login');
-    
-    if (!mat || !pass) return alert("Preencha os campos!");
-    btn.innerText = "Conectando...";
-    btn.disabled = true;
-
-    try {
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuario: mat, senha: pass })
-        });
-
-        if (!response.ok) throw new Error("Erro no servidor");
-
-        const res = await response.json();
-        if (res.authenticated) {
-            appState.usuario = mat;
-            appState.dadosUsuario = res.user;
-            mudarTela('screen-role');
-        } else {
-            alert("Matrícula ou Senha inválidos!");
-            btn.innerText = "Entrar";
-            btn.disabled = false;
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Erro de conexão. Verifique sua API.");
-        btn.innerText = "Entrar";
-        btn.disabled = false;
-    }
+function login() {
+    // Simulação de login
+    mudarTela('screen-role');
 }
 
 function selecionarPerfil(tipo) {
     appState.perfil = tipo;
-    document.getElementById('infoUsuario').innerText = `Olá, ${appState.dadosUsuario?.nome || appState.usuario}`;
-    mudarTela('screen-menu');
-    carregarEstoqueBase();
-}
-
-async function carregarEstoqueBase() {
-    try {
-        const response = await fetch(GITHUB_ESTOQUE + "?t=" + new Date().getTime());
-        const arrayBuffer = await response.arrayBuffer();
-        const data = new Uint8Array(arrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-        const range = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-        
-        let indiceCabecalho = range.findIndex(linha => linha && linha.some(cel => cel && cel.toString().includes("Material")));
-        if (indiceCabecalho === -1) indiceCabecalho = 0;
-        
-        const dadosBrutos = XLSX.utils.sheet_to_json(worksheet, { range: indiceCabecalho });
-        const centroUsuario = appState.dadosUsuario?.centro?.toString().toUpperCase().trim();
-
-        appState.estoque = dadosBrutos
-            .map(item => ({
-                codigo: item["Material"],
-                descricao: item["Texto breve material"],
-                saldo: parseFloat(item["Utilização livre"]) || 0,
-                unidade: item["Unid.medida básica"],
-                deposito: item["Depósito"],
-                centro: item["Centro"]?.toString().toUpperCase().trim()
-            }))
-            .filter(i => i.codigo && (centroUsuario ? i.centro === centroUsuario : true));
-
-    } catch (e) { console.error("Erro ao ler MB52:", e); }
-}
-
-function abrirOSM() { mudarTela('screen-osm'); filtrarEstoque(); }
-
-function filtrarEstoque() {
-    const termo = document.getElementById('buscaMaterial').value.toLowerCase();
-    const lista = document.getElementById('listaProdutos');
-    lista.innerHTML = "";
-
-    const filtrados = appState.estoque.filter(i => 
-        (i.codigo && i.codigo.toString().toLowerCase().includes(termo)) || 
-        (i.descricao && i.descricao.toLowerCase().includes(termo))
-    );
-
-    filtrados.slice(0, 50).forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'item-estoque';
-        div.onclick = () => prepararAdicao(item);
-        div.innerHTML = `
-            <div style="font-weight:bold; color:var(--accent);">${item.codigo}</div>
-            <div style="font-size:13px; margin: 4px 0;">${item.descricao}</div>
-            <div style="font-size:12px; color:#aaa;">Saldo: <b>${item.saldo}</b> ${item.unidade} | Dep: ${item.deposito}</div>
-            <div style="font-size:10px; color:var(--accent); margin-top:5px;">+ Clique para adicionar</div>
-        `;
-        lista.appendChild(div);
-    });
-}
-
-// LÓGICA PAI E FILHO (CARRINHO)
-
-function prepararAdicao(item) {
-    const qtd = prompt(`Informe a quantidade para:\n${item.descricao}`, "1");
-    if (qtd === null) return;
+    const label = document.getElementById('roleLabel');
+    const info = document.getElementById('infoUsuario');
     
-    const numQtd = parseFloat(qtd.replace(',', '.'));
-    if (isNaN(numQtd) || numQtd <= 0) {
-        alert("Quantidade inválida!");
-        return;
-    }
-
-    // Adiciona o "Filho" ao array do "Pai"
-    appState.carrinho.push({
-        ...item,
-        quantidadeSolicitada: numQtd
-    });
-
-    atualizarContadorCart();
-    alert("Item adicionado à lista!");
+    info.innerText = `Olá, ${appState.usuario}`;
+    label.innerText = tipo.toUpperCase();
+    
+    configurarMenu(tipo);
+    mudarTela('screen-menu');
 }
 
-function atualizarContadorCart() {
-    document.getElementById('cart-count').innerText = appState.carrinho.length;
-}
+function configurarMenu(perfil) {
+    const grid = document.getElementById('menuBotoes');
+    grid.innerHTML = ""; // Limpa menu
 
-function abrirCarrinho() {
-    mudarTela('screen-carrinho');
-    renderizarCarrinho();
-}
-
-function renderizarCarrinho() {
-    const lista = document.getElementById('listaCarrinho');
-    const msg = document.getElementById('vazioMsg');
-    lista.innerHTML = "";
-
-    if (appState.carrinho.length === 0) {
-        msg.style.display = "block";
-        return;
-    }
-    msg.style.display = "none";
-
-    appState.carrinho.forEach((item, index) => {
-        const div = document.createElement('div');
-        div.className = 'item-carrinho';
-        div.innerHTML = `
-            <div style="text-align:left;">
-                <div style="font-weight:bold; color:var(--accent);">${item.codigo}</div>
-                <div style="font-size:11px;">${item.descricao}</div>
-                <div style="font-size:12px;">Qtd: <b>${item.quantidadeSolicitada}</b> ${item.unidade}</div>
-            </div>
-            <button onclick="removerDoCarrinho(${index})" style="width:40px; margin:0; background:var(--danger); color:#fff; padding:5px;">X</button>
-        `;
-        lista.appendChild(div);
-    });
-}
-
-function removerDoCarrinho(index) {
-    appState.carrinho.splice(index, 1);
-    atualizarContadorCart();
-    renderizarCarrinho();
-}
-
-async function finalizarPedido() {
-    if (appState.carrinho.length === 0) return alert("Adicione pelo menos um item!");
-
-    // Estrutura Mestre (Pai)
-    const pedidoPai = {
-        id_solicitacao: Date.now(), // ID Único
-        solicitante: appState.usuario,
-        data_criacao: new Date().toLocaleString(),
-        centro: appState.dadosUsuario?.centro,
-        itens: appState.carrinho // Lista de Filhos
+    const botoes = {
+        solicitante: [
+            { txt: "🔁 Conversor", cmd: () => alert('Conversor') },
+            { txt: "📋 Gerar OSM", cmd: () => abrirOSM('Gerar OSM') },
+            { txt: "📆 Gerar Programada", cmd: () => alert('Programada') },
+            { txt: "📂 Meus Pedidos", cmd: () => abrirPedidos('Meus Pedidos') }
+        ],
+        aprovador: [
+            { txt: "✅ Pedidos Recebidos", cmd: () => abrirPedidos('Aprovar Pedidos') },
+            { txt: "📋 Criar OSM", cmd: () => abrirOSM('Criar OSM') },
+            { txt: "📆 Criar Programadas", cmd: () => alert('Criar Programada') }
+        ],
+        administrador: [
+            { txt: "📊 Dashboard Geral", cmd: () => alert('Admin View') },
+            { txt: "👥 Gestão Usuários", cmd: () => alert('Usuários') },
+            { txt: "⚙️ Configurações", cmd: () => alert('Config') },
+            { txt: "📂 Todas Solicitações", cmd: () => abrirPedidos('Gestão Total') }
+        ]
     };
 
-    console.log("Objeto Final (Pai e Filho):", pedidoPai);
+    botoes[perfil].forEach(btn => {
+        const b = document.createElement('button');
+        b.innerText = btn.txt;
+        b.onclick = btn.cmd;
+        grid.appendChild(b);
+    });
+}
 
-    // Simulação de envio
-    alert(`Sucesso! Solicitação ${pedidoPai.id_solicitacao} enviada com ${pedidoPai.itens.length} itens.`);
-    
-    // Limpa tudo e volta ao menu
-    appState.carrinho = [];
-    atualizarContadorCart();
-    mudarTela('screen-menu');
+// LÓGICA DE TELAS ESPECÍFICAS
+function abrirOSM(titulo) {
+    document.getElementById('tituloOSM').innerText = titulo;
+    mudarTela('screen-osm');
+    // Aqui viria a carga do estoque...
+}
+
+function abrirPedidos(titulo) {
+    document.getElementById('tituloPedidos').innerText = titulo;
+    const lista = document.getElementById('listaPedidosGeral');
+    lista.innerHTML = "";
+
+    appState.pedidosSimulados.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'item-pedido';
+        div.style.borderLeftColor = p.status === "PENDENTE" ? "var(--warning)" : "var(--accent)";
+        
+        let acoes = "";
+        if (appState.perfil === 'aprovador' && p.status === "PENDENTE") {
+            acoes = `
+                <div style="margin-top:10px;">
+                    <button onclick="decisao(1)" style="width:48%; margin:0; background:var(--accent); padding:5px;">Aprovar</button>
+                    <button onclick="decisao(0)" style="width:48%; margin:0; background:var(--danger); padding:5px; color:#fff;">Recusar</button>
+                </div>
+            `;
+        }
+
+        div.innerHTML = `
+            <div style="font-size:12px; color:#aaa;">ID: #${p.id} - ${p.data}</div>
+            <div style="font-weight:bold;">${p.solicitante}</div>
+            <div style="font-size:13px;">Itens: ${p.itens} | Status: <b style="color:var(--accent)">${p.status}</b></div>
+            ${acoes}
+        `;
+        lista.appendChild(div);
+    });
+    mudarTela('screen-pedidos');
+}
+
+function decisao(aprovado) {
+    alert(aprovado ? "Pedido Aprovado com sucesso!" : "Pedido Recusado.");
+}
+
+function filtrarEstoque() {
+    const lista = document.getElementById('listaProdutos');
+    lista.innerHTML = "<p style='text-align:center; color:#666;'>Pesquise para ver itens...</p>";
 }
 </script>
 </body>
