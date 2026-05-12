@@ -8,123 +8,90 @@
 <style>
 body{
     margin:0;
-    font-family:Segoe UI,sans-serif;
-    background:#020417;
-    color:#e0e0e0;
-}
-.screen{
-    display:none;
-    min-height:100vh;
+    height:100vh;
+    display:flex;
     align-items:center;
     justify-content:center;
+    background:radial-gradient(circle at top,#02062a,#010314);
+    font-family:Segoe UI,sans-serif;
 }
-.screen.active{display:flex}
-.card{
-    background:#0c1133;
-    padding:24px;
+.login-box{
+    width:360px;
+    background:linear-gradient(180deg,#0b1240,#080c2b);
+    padding:30px;
     border-radius:14px;
-    width:100%;
-    max-width:420px;
+    box-shadow:0 20px 40px rgba(0,0,0,.6);
 }
-h2{color:#00ffe0;text-align:center}
-input,button{
+.login-box h2{
+    text-align:center;
+    color:#00ffe0;
+    margin-bottom:25px;
+}
+.login-box input{
     width:100%;
-    padding:12px;
-    margin-top:10px;
-    border-radius:8px;
+    padding:14px;
+    margin-bottom:12px;
+    border-radius:10px;
     border:none;
+    font-size:15px;
 }
-button{
-    cursor:pointer;
+.login-box button{
+    width:100%;
+    padding:14px;
+    border-radius:10px;
+    border:none;
     font-weight:700;
-    background:linear-gradient(135deg,#00ffe0,#0066ff);
+    cursor:pointer;
+    background:linear-gradient(90deg,#00ffe0,#0080ff);
     color:#000;
 }
-button.outline{
-    background:none;
-    border:1px solid #666;
-    color:#ccc;
-}
-.item{
-    background:#11194d;
-    padding:8px;
-    border-left:4px solid #00ffe0;
-    margin-top:6px;
-}
+.screen{display:none}
+.screen.active{display:block}
 </style>
 </head>
 
 <body>
 
 <!-- LOGIN -->
-<div id="scr-login" class="screen active">
-<div class="card">
-<h2>FAST REQUEST</h2>
-
-<input id="inMat" placeholder="Matrícula">
-<input id="inPass" type="password" placeholder="Senha">
-
-<button onclick="Auth.login()">Entrar</button>
-</div>
+<div id="scr-login" class="login-box screen active">
+    <h2>FAST REQUEST</h2>
+    <input id="inMat" placeholder="Matrícula">
+    <input id="inPass" type="password" placeholder="Senha">
+    <button onclick="Auth.login()">Entrar</button>
 </div>
 
 <!-- MENU -->
-<div id="scr-menu" class="screen">
-<div class="card">
-<h2 id="uiUser"></h2>
-<button onclick="Router.go('scr-osm')">Gerar OSM</button>
-<button onclick="Pedido.meus()">Meus Pedidos</button>
-<button class="outline" onclick="Auth.logout()">Logout</button>
-</div>
+<div id="scr-menu" class="login-box screen">
+    <h2 id="uiUser"></h2>
+    <button onclick="Router.go('scr-osm')">Gerar OSM</button>
+    <button onclick="Auth.logout()" style="margin-top:10px;background:#222;color:#fff">Logout</button>
 </div>
 
 <!-- OSM -->
-<div id="scr-osm" class="screen">
-<div class="card">
-<h2>Nova OSM</h2>
-
-<input id="osmId" placeholder="Número da OSM">
-
-<input id="matItem" placeholder="Material">
-<input id="qtdItem" type="number" placeholder="Quantidade">
-<input id="patItem" placeholder="Patrimônio">
-
-<button onclick="OSM.addItem()">Adicionar Item</button>
-
-<div id="cart"></div>
-
-<button onclick="OSM.enviar()">Confirmar OSM</button>
-<button class="outline" onclick="Router.go('scr-menu')">Voltar</button>
-</div>
+<div id="scr-osm" class="login-box screen">
+    <h2>Nova OSM</h2>
+    <input id="osmId" placeholder="Número da OSM">
+    <input id="matItem" placeholder="Material">
+    <input id="qtdItem" type="number" placeholder="Quantidade">
+    <button onclick="OSM.addItem()">Adicionar</button>
+    <div id="cart"></div>
+    <button onclick="OSM.enviar()">Confirmar</button>
+    <button onclick="Router.go('scr-menu')" style="margin-top:10px;background:#222;color:#fff">Voltar</button>
 </div>
 
 <script>
-/* ================= APP ================= */
-const App={
-    user:null,
-    cart:[],
-    pedidos:[]
-};
+const App={user:null,cart:[]};
 
-/* ================= AUTH ================= */
 const Auth={
     login(){
-        const mat = inMat.value.trim();
-        const pass = inPass.value.trim();
-
-        if(!mat || !pass){
+        if(!inMat.value || !inPass.value){
             alert("Informe matrícula e senha");
             return;
         }
-
-        // 🔐 Simulação de autenticação (igual antes)
-        App.user = {
-            matricula: mat,
-            nome: "Usuário " + mat
-        };
-
-        sessionStorage.setItem("user", JSON.stringify(App.user));
-        UI.init();
+        App.user={nome:"Usuário "+inMat.value,matricula:inMat.value};
+        sessionStorage.setItem("user",JSON.stringify(App.user));
+        uiUser.innerText="Olá, "+App.user.nome;
+        Router.go("scr-menu");
     },
     logout(){
         sessionStorage.clear();
@@ -132,97 +99,38 @@ const Auth={
     }
 };
 
-/* ================= UI ================= */
-const UI={
-    init(){
-        uiUser.innerText = "Olá, " + App.user.nome;
-        Router.go("scr-menu");
-    }
-};
-
-/* ================= OSM ================= */
 const OSM={
     addItem(){
-        if(!matItem.value || !qtdItem.value){
-            alert("Preencha material e quantidade");
-            return;
-        }
-
-        App.cart.push({
-            material: matItem.value,
-            quantidade: Number(qtdItem.value),
-            patrimonio: patItem.value || "N/A"
-        });
-
-        matItem.value = qtdItem.value = patItem.value = "";
-        this.render();
+        App.cart.push({material:matItem.value,qtd:qtdItem.value});
+        cart.innerHTML+=`<div>${matItem.value} - ${qtdItem.value}</div>`;
+        matItem.value=qtdItem.value="";
     },
-    render(){
-        cart.innerHTML = App.cart.map(i =>
-            `<div class="item">
-                ${i.material} | Qtd: ${i.quantidade}<br>
-                <small>${i.patrimonio}</small>
-            </div>`
-        ).join("");
-    },
-    async enviar(){
+    enviar(){
         if(!osmId.value || !App.cart.length){
-            alert("Informe OSM e adicione itens");
+            alert("Complete a OSM");
             return;
         }
-
-        const osm = {
-            id: osmId.value,
-            solicitante: App.user,
-            data: new Date().toISOString(),
-            status: "AGUARDANDO",
-            itens: App.cart
-        };
-
-        try{
-            await fetch("/api/pedidos",{
-                method:"POST",
-                headers:{ "Content-Type":"application/json" },
-                body: JSON.stringify(osm)
-            });
-        }catch(e){
-            console.warn("API indisponível");
-        }
-
-        App.pedidos.push(osm);
-
         alert("✅ OSM criada");
         App.cart=[];
-        this.render();
+        cart.innerHTML="";
         osmId.value="";
         Router.go("scr-menu");
     }
 };
 
-/* ================= PEDIDOS ================= */
-const Pedido={
-    meus(){
-        console.clear();
-        console.log(App.pedidos);
-        alert("Pedidos no console (F12)");
-    }
-};
-
-/* ================= ROUTER ================= */
 const Router={
     go(id){
-        document.querySelectorAll(".screen")
-            .forEach(s=>s.classList.remove("active"));
+        document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
         document.getElementById(id).classList.add("active");
     }
 };
 
-/* ================= START ================= */
-window.onload = () => {
-    const u = sessionStorage.getItem("user");
+window.onload=()=>{
+    const u=sessionStorage.getItem("user");
     if(u){
-        App.user = JSON.parse(u);
-        UI.init();
+        App.user=JSON.parse(u);
+        uiUser.innerText="Olá, "+App.user.nome;
+        Router.go("scr-menu");
     }
 };
 </script>
