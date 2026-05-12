@@ -1,7 +1,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>FAST REQUEST PRO - Hierarchy</title>
+    <title>FAST REQUEST PRO - Automated Access</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
@@ -28,7 +28,7 @@
         button{ background:linear-gradient(135deg,var(--accent),var(--primary)); font-weight:700; cursor:pointer; color:#000; transition: 0.3s; }
         button:active { transform: scale(0.98); }
         
-        .menu{ width:100%; max-width:600px; position: relative; }
+        .menu{ width:100%; max-width:600px; }
         .menu-grid{ display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top: 20px; }
         
         .lista-container { margin-top:20px; max-height:400px; overflow-y:auto; text-align:left; padding-right: 5px; }
@@ -40,6 +40,7 @@
         .badge-perfil {
             font-size: 10px; background: var(--accent); color: #000;
             padding: 2px 8px; border-radius: 10px; display: inline-block; margin-top: 5px;
+            text-transform: uppercase;
         }
 
         footer{ position:fixed; bottom:10px; width:100%; text-align:center; font-size:11px; color:#aaa; pointer-events: none; }
@@ -52,68 +53,60 @@
     <div id="screen-login" class="screen active">
         <div class="card">
             <h2>FAST REQUEST PRO</h2>
+            <p style="font-size: 12px; color: var(--accent);">Identificação de Perfil Automática</p>
             <input id="login_mat" type="text" placeholder="Matrícula">
             <input id="login_pass" type="password" placeholder="Senha">
-            <button onclick="login()">Entrar</button>
+            <button id="btn-login" onclick="login()">Entrar</button>
         </div>
     </div>
 
-    <!-- TELA: SELEÇÃO DE PERFIL (HIERARQUIA) -->
-    <div id="screen-role" class="screen">
-        <div class="card">
-            <h3>Nível de Acesso</h3>
-            <button onclick="selecionarPerfil('solicitante')">SOLICITANTE (Filho)</button>
-            <button onclick="selecionarPerfil('aprovador')" style="background:#fff; color:#000;">APROVADOR (Pai)</button>
-            <button onclick="selecionarPerfil('administrador')" style="background:var(--warning); color:#000;">ADMINISTRADOR (Gestor)</button>
-        </div>
-    </div>
-
-    <!-- TELA: MENU DINÂMICO -->
+    <!-- TELA: MENU DINÂMICO (CARREGA APÓS LOGIN) -->
     <div id="screen-menu" class="screen">
         <div class="menu">
             <div id="cabecalhoUsuario">
-                <h3 id="infoUsuario" style="margin-bottom:5px;"></h3>
-                <span id="roleLabel" class="badge-perfil"></span>
+                <h3 id="infoUsuario" style="margin-bottom:5px; text-align: center;"></h3>
+                <center><span id="roleLabel" class="badge-perfil"></span></center>
             </div>
             
             <div id="menuBotoes" class="menu-grid">
-                <!-- Botões injetados via JS -->
+                <!-- Botões injetados conforme o perfil do banco de dados -->
             </div>
             
             <button onclick="location.reload()" style="margin-top:30px; background:transparent; color:var(--danger); border:1px solid var(--danger);">Sair</button>
         </div>
     </div>
 
-    <!-- TELA: OSM / ESTOQUE -->
+    <!-- TELA: OSM / CONSULTA -->
     <div id="screen-osm" class="screen">
         <div class="menu">
-            <h3 id="tituloOSM">Gerar OSM</h3>
-            <input type="text" id="buscaMaterial" placeholder="Buscar material..." oninput="filtrarEstoque()">
+            <h3 id="tituloOSM">Consulta</h3>
+            <input type="text" id="buscaMaterial" placeholder="Cód. Sap ou Descrição..." oninput="filtrarEstoque()">
             <div id="listaProdutos" class="lista-container"></div>
-            <button onclick="mudarTela('screen-menu')" style="background:#444; color:#fff;">Voltar</button>
+            <button onclick="mudarTela('screen-menu')" style="background:#444; color:#fff;">Voltar ao Menu</button>
         </div>
     </div>
 
-    <!-- TELA: PEDIDOS (VERIFICAÇÃO) -->
+    <!-- TELA: PEDIDOS (APROVAÇÃO OU CONSULTA) -->
     <div id="screen-pedidos" class="screen">
         <div class="menu">
             <h3 id="tituloPedidos">Pedidos</h3>
             <div id="listaPedidosGeral" class="lista-container"></div>
-            <button onclick="mudarTela('screen-menu')" style="background:#444; color:#fff;">Voltar</button>
+            <button onclick="mudarTela('screen-menu')" style="background:#444; color:#fff;">Voltar ao Menu</button>
         </div>
     </div>
 
-    <footer>FAST REQUEST PRO • v16.0.0 • GitHub + Vercel</footer>
+    <footer>FAST REQUEST PRO • v16.1.0 • GitHub + Vercel</footer>
 
 <script>
+const GITHUB_ESTOQUE = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX";
 let appState = { 
-    usuario: "Usuário Teste", 
+    usuario: null, 
     perfil: null, 
+    dadosUsuario: null, 
     estoque: [],
-    carrinho: [],
     pedidosSimulados: [
-        { id: 101, solicitante: "Matrícula 001", data: "12/05/2026", status: "PENDENTE", itens: 5 },
-        { id: 102, solicitante: "Matrícula 002", data: "12/05/2026", status: "APROVADO", itens: 2 }
+        { id: 202601, solicitante: "João Silva", data: "12/05/2026", status: "PENDENTE", itens: 4 },
+        { id: 202602, solicitante: "Maria Souza", data: "11/05/2026", status: "APROVADO", itens: 7 }
     ]
 };
 
@@ -122,60 +115,88 @@ function mudarTela(id) {
     document.getElementById(id).classList.add('active');
 }
 
-function login() {
-    // Simulação de login
-    mudarTela('screen-role');
-}
+async function login() {
+    const mat = document.getElementById('login_mat').value;
+    const pass = document.getElementById('login_pass').value;
+    const btn = document.getElementById('btn-login');
 
-function selecionarPerfil(tipo) {
-    appState.perfil = tipo;
-    const label = document.getElementById('roleLabel');
-    const info = document.getElementById('infoUsuario');
-    
-    info.innerText = `Olá, ${appState.usuario}`;
-    label.innerText = tipo.toUpperCase();
-    
-    configurarMenu(tipo);
-    mudarTela('screen-menu');
+    if (!mat || !pass) return alert("Preencha os campos!");
+    btn.innerText = "Validando...";
+    btn.disabled = true;
+
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario: mat, senha: pass })
+        });
+
+        const res = await response.json();
+
+        if (res.authenticated) {
+            // DADOS VINDOS DA SUA BASE
+            appState.usuario = res.user.nome;
+            appState.perfil = res.user.perfil.toLowerCase(); // solicitante, aprovador ou administrador
+            appState.dadosUsuario = res.user;
+
+            // Carrega Interface
+            document.getElementById('infoUsuario').innerText = `Olá, ${appState.usuario}`;
+            document.getElementById('roleLabel').innerText = appState.perfil;
+            
+            configurarMenu(appState.perfil);
+            carregarEstoqueBase();
+            mudarTela('screen-menu');
+        } else {
+            alert("Acesso negado: Matrícula ou Senha inválidos.");
+            btn.innerText = "Entrar";
+            btn.disabled = false;
+        }
+    } catch (e) {
+        alert("Erro ao conectar com o servidor.");
+        btn.innerText = "Entrar";
+        btn.disabled = false;
+    }
 }
 
 function configurarMenu(perfil) {
     const grid = document.getElementById('menuBotoes');
-    grid.innerHTML = ""; // Limpa menu
+    grid.innerHTML = ""; 
 
-    const botoes = {
+    // Lógica de menus solicitada
+    const menus = {
         solicitante: [
-            { txt: "🔁 Conversor", cmd: () => alert('Conversor') },
+            { txt: "🔁 Conversor", cmd: () => alert('Conversor em breve') },
             { txt: "📋 Gerar OSM", cmd: () => abrirOSM('Gerar OSM') },
-            { txt: "📆 Gerar Programada", cmd: () => alert('Programada') },
-            { txt: "📂 Meus Pedidos", cmd: () => abrirPedidos('Meus Pedidos') }
+            { txt: "📆 Gerar Programada", cmd: () => alert('Programada em breve') },
+            { txt: "📂 Meus Pedidos", cmd: () => abrirPedidos('Verificar Meus Pedidos') }
         ],
         aprovador: [
-            { txt: "✅ Pedidos Recebidos", cmd: () => abrirPedidos('Aprovar Pedidos') },
+            { txt: "✅ Pedidos Recebidos", cmd: () => abrirPedidos('Aprovar/Recusar Pedidos') },
             { txt: "📋 Criar OSM", cmd: () => abrirOSM('Criar OSM') },
-            { txt: "📆 Criar Programadas", cmd: () => alert('Criar Programada') }
+            { txt: "📆 Criar Programadas", cmd: () => alert('Programada em breve') }
         ],
         administrador: [
-            { txt: "📊 Dashboard Geral", cmd: () => alert('Admin View') },
-            { txt: "👥 Gestão Usuários", cmd: () => alert('Usuários') },
-            { txt: "⚙️ Configurações", cmd: () => alert('Config') },
+            { txt: "📊 Dashboard", cmd: () => alert('Painel Gestor') },
+            { txt: "👥 Gestão Usuários", cmd: () => alert('Controle de Acessos') },
+            { txt: "⚙️ Configurações", cmd: () => alert('Configurações do Sistema') },
             { txt: "📂 Todas Solicitações", cmd: () => abrirPedidos('Gestão Total') }
         ]
     };
 
-    botoes[perfil].forEach(btn => {
+    const itensMenu = menus[perfil] || [];
+    itensMenu.forEach(item => {
         const b = document.createElement('button');
-        b.innerText = btn.txt;
-        b.onclick = btn.cmd;
+        b.innerText = item.txt;
+        b.onclick = item.cmd;
         grid.appendChild(b);
     });
 }
 
-// LÓGICA DE TELAS ESPECÍFICAS
+// FUNÇÕES DE TELA
 function abrirOSM(titulo) {
     document.getElementById('tituloOSM').innerText = titulo;
     mudarTela('screen-osm');
-    // Aqui viria a carga do estoque...
+    filtrarEstoque();
 }
 
 function abrirPedidos(titulo) {
@@ -186,22 +207,22 @@ function abrirPedidos(titulo) {
     appState.pedidosSimulados.forEach(p => {
         const div = document.createElement('div');
         div.className = 'item-pedido';
-        div.style.borderLeftColor = p.status === "PENDENTE" ? "var(--warning)" : "var(--accent)";
         
+        // Se for Aprovador, mostra botões de ação
         let acoes = "";
         if (appState.perfil === 'aprovador' && p.status === "PENDENTE") {
             acoes = `
-                <div style="margin-top:10px;">
-                    <button onclick="decisao(1)" style="width:48%; margin:0; background:var(--accent); padding:5px;">Aprovar</button>
-                    <button onclick="decisao(0)" style="width:48%; margin:0; background:var(--danger); padding:5px; color:#fff;">Recusar</button>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button onclick="decisao(true)" style="margin:0; flex:1; background:var(--accent); color:#000; padding:8px;">Aprovar</button>
+                    <button onclick="decisao(false)" style="margin:0; flex:1; background:var(--danger); color:#fff; padding:8px;">Recusar</button>
                 </div>
             `;
         }
 
         div.innerHTML = `
-            <div style="font-size:12px; color:#aaa;">ID: #${p.id} - ${p.data}</div>
+            <div style="font-size:11px; color:#aaa;">REF: #${p.id}</div>
             <div style="font-weight:bold;">${p.solicitante}</div>
-            <div style="font-size:13px;">Itens: ${p.itens} | Status: <b style="color:var(--accent)">${p.status}</b></div>
+            <div style="font-size:13px; margin:5px 0;">Itens: ${p.itens} | Status: <span style="color:var(--accent)">${p.status}</span></div>
             ${acoes}
         `;
         lista.appendChild(div);
@@ -210,12 +231,47 @@ function abrirPedidos(titulo) {
 }
 
 function decisao(aprovado) {
-    alert(aprovado ? "Pedido Aprovado com sucesso!" : "Pedido Recusado.");
+    alert(aprovado ? "Solicitação Aprovada!" : "Solicitação Recusada.");
+}
+
+async function carregarEstoqueBase() {
+    try {
+        const response = await fetch(GITHUB_ESTOQUE + "?t=" + new Date().getTime());
+        const arrayBuffer = await response.arrayBuffer();
+        const data = new Uint8Array(arrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const dadosBrutos = XLSX.utils.sheet_to_json(worksheet, { range: 0 });
+
+        appState.estoque = dadosBrutos.map(item => ({
+            codigo: item["Material"],
+            descricao: item["Texto breve material"],
+            saldo: item["Utilização livre"],
+            unidade: item["Unid.medida básica"]
+        })).filter(i => i.codigo);
+    } catch (e) { console.error("Erro MB52:", e); }
 }
 
 function filtrarEstoque() {
+    const termo = document.getElementById('buscaMaterial').value.toLowerCase();
     const lista = document.getElementById('listaProdutos');
-    lista.innerHTML = "<p style='text-align:center; color:#666;'>Pesquise para ver itens...</p>";
+    lista.innerHTML = "";
+
+    const filtrados = appState.estoque.filter(i => 
+        (i.codigo && i.codigo.toString().toLowerCase().includes(termo)) || 
+        (i.descricao && i.descricao.toLowerCase().includes(termo))
+    );
+
+    filtrados.slice(0, 20).forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'item-estoque';
+        div.innerHTML = `
+            <div style="font-weight:bold; color:var(--accent);">${item.codigo}</div>
+            <div style="font-size:13px;">${item.descricao}</div>
+            <div style="font-size:12px; opacity:0.7;">Saldo: ${item.saldo} ${item.unidade}</div>
+        `;
+        lista.appendChild(div);
+    });
 }
 </script>
 </body>
