@@ -1,254 +1,207 @@
-<!DOCTYPE html>
+<backup>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FAST REQUEST PRO - V20.0</title>
-
-    <!-- LIBS -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+    <title>FAST REQUEST PRO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
         :root {
-            --bg-dark:#020417;
-            --bg-card:rgba(255,255,255,0.04);
-            --accent:#00ffe0;
-            --primary:#0066ff;
-            --danger:#ff4444;
-            --text-main:#e0e0e0;
-            --transition:all .3s ease;
+            --bg1:#0a0f2c; --bg2:#020417; --glass:rgba(255,255,255,.08);
+            --accent:#00ffe0; --primary:#0066ff;
         }
-        *{box-sizing:border-box;margin:0;padding:0}
+        * { box-sizing:border-box; }
         body{
-            font-family:'Segoe UI',sans-serif;
-            background:var(--bg-dark);
-            color:var(--text-main);
-            min-height:100vh;
-            display:flex;
-            justify-content:center;
+            margin:0; font-family:Segoe UI,Roboto,sans-serif;
+            background:radial-gradient(circle at top,var(--bg1),var(--bg2));
+            color:#fff; overflow-x: hidden;
         }
-        .screen{display:none;width:100%;max-width:600px;padding:20px}
-        .screen.active{display:flex;flex-direction:column}
-        .glass-card{
-            background:var(--bg-card);
-            backdrop-filter:blur(15px);
-            border:1px solid rgba(255,255,255,.1);
-            border-radius:20px;
-            padding:25px;
-            box-shadow:0 15px 35px rgba(0,0,0,.5);
+        .screen{ display:none; min-height:100vh; justify-content:center; align-items:center; padding: 20px; }
+        .screen.active{ display:flex; }
+        .card{
+            width:100%; max-width:380px; padding:30px; border-radius:20px;
+            background:var(--glass); backdrop-filter: blur(14px); text-align:center;
+            box-shadow:0 0 30px rgba(0,255,255,.25); border: 1px solid rgba(255,255,255,0.1);
         }
-        h2{color:var(--accent);margin-bottom:20px}
-        .label-tiny{
-            font-size:10px;
-            text-transform:uppercase;
-            color:var(--accent);
-            font-weight:800;
-            margin:10px 0 5px;
-            display:block;
-        }
-        input,select,button{
-            width:100%;
-            padding:14px;
-            border-radius:12px;
-            border:1px solid rgba(255,255,255,.1);
-            background:rgba(255,255,255,.06);
-            color:#fff;
-            margin-bottom:10px;
-        }
-        .btn-primary{
-            background:linear-gradient(135deg,var(--accent),var(--primary));
-            color:#000;
-            font-weight:700;
-            border:none;
-            cursor:pointer;
-        }
-        .btn-outline{
-            background:none;
-            border:1px solid var(--danger);
-            color:var(--danger);
-            cursor:pointer;
-            margin-top:10px;
-        }
-        .grid-nav{display:grid;grid-template-columns:1fr 1fr;gap:15px}
-        .nav-card{
-            height:110px;
-            border:1px solid rgba(255,255,255,.1);
-            border-radius:18px;
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            justify-content:center;
-            gap:10px;
-            cursor:pointer;
-            background:rgba(255,255,255,.02);
-            transition:var(--transition);
-            text-align:center;
-            font-size:13px;
-        }
-        .nav-card:hover{
-            border-color:var(--accent);
-            background:rgba(0,255,224,.1);
-            color:var(--accent);
-            transform:translateY(-3px);
-        }
-        .nav-card i{font-size:24px}
-        .search-popover{
-            position:absolute;
-            width:100%;
-            background:#0a0f2c;
-            z-index:100;
-            border-radius:10px;
-            border:1px solid var(--accent);
-            display:none;
-            max-height:200px;
-            overflow-y:auto;
-        }
-        .item-row{padding:12px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer}
-        .cart-item{
-            background:rgba(0,255,224,.05);
-            border-left:4px solid var(--accent);
-            padding:12px;
-            border-radius:8px;
-            margin-bottom:8px;
-            display:flex;
-            justify-content:space-between;
-        }
-        .hidden{display:none!important}
-        .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        input, button{ width:100%; padding:14px; margin-top:15px; border:none; border-radius:12px; font-size:15px; outline: none; }
+        input { background: rgba(255,255,255,0.1); color: #fff; }
+        button{ background:linear-gradient(135deg,var(--accent),var(--primary)); font-weight:700; cursor:pointer; color:#000; }
+        .menu{ width:100%; max-width:600px; }
+        .menu h3{ text-align:center; margin-bottom:20px; text-transform: uppercase; }
+        .menu-grid{ display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+        .lista-container { margin-top:20px; max-height:400px; overflow-y:auto; text-align:left; padding-right: 5px; }
+        .item-estoque { padding:12px; background:rgba(255,255,255,0.05); border-radius:10px; margin-bottom:8px; border-left: 4px solid var(--accent); }
+        footer{ position:fixed; bottom:10px; width:100%; text-align:center; font-size:11px; color:#aaa; pointer-events: none; }
     </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<section id="scr-login" class="screen active">
-    <div class="glass-card" style="max-width:380px;align-self:center;text-align:center">
-        <i class="fas fa-shield-alt" style="font-size:40px;color:var(--accent)"></i>
-        <h2>FAST REQUEST</h2>
-        <input id="in-mat" placeholder="Matrícula">
-        <input id="in-pass" type="password" placeholder="Senha">
-        <button class="btn-primary" onclick="Auth.login()">ENTRAR</button>
-    </div>
-</section>
-
-<!-- MENU -->
-<section id="scr-menu" class="screen">
-    <div class="glass-card">
-        <h2 id="ui-greeting">Olá</h2>
-        <div id="ui-badge" style="font-size:11px;color:var(--accent);margin-bottom:20px"></div>
-
-        <div class="grid-nav">
-            <div class="nav-card p-solic p-adm" onclick="Router.go('scr-osm')">
-                <i class="fas fa-file-invoice"></i> Gerar OSM
-            </div>
-            <div class="nav-card p-solic p-adm" onclick="alert('Meus Pedidos em breve')">
-                <i class="fas fa-list-ul"></i> Meus Pedidos
-            </div>
-            <div class="nav-card p-solic p-adm" onclick="Router.go('scr-conversor')">
-                <i class="fas fa-weight-hanging"></i> Conversor
-            </div>
+    <div id="screen-login" class="screen active">
+        <div class="card">
+            <h2>FAST REQUEST PRO</h2>
+            <p style="font-size: 12px; color: var(--accent);">Acesso ao RequestApp</p>
+            <input id="login_mat" type="text" placeholder="Matrícula">
+            <input id="login_pass" type="password" placeholder="Senha">
+            <button id="btn-login" onclick="login()">Entrar</button>
         </div>
-
-        <button class="btn-outline" onclick="Auth.logout()">LOGOUT</button>
     </div>
-</section>
 
-<!-- OSM -->
-<section id="scr-osm" class="screen">
-    <div class="glass-card">
-        <h2>📋 Gerar OSM</h2>
-
-        <span class="label-tiny">Nº OSM</span>
-        <input id="osm-id" placeholder="ALFANUMÉRICO">
-
-        <span class="label-tiny">Adicionar Material</span>
-        <input id="mat-item" placeholder="Material">
-        <input id="qtd-item" type="number" placeholder="Quantidade">
-        <input id="pat-item" placeholder="Patrimônio">
-
-        <button class="btn-primary" onclick="OSM.add()">Adicionar</button>
-
-        <div id="cart-list" style="margin-top:10px"></div>
-
-        <button class="btn-primary" onclick="OSM.finalize()">Confirmar</button>
-        <button class="btn-outline" onclick="Router.go('scr-menu')">Voltar</button>
+    <div id="screen-role" class="screen">
+        <div class="card">
+            <h3>Selecione seu Perfil</h3>
+            <button onclick="selecionarPerfil('solicitante')">SOLICITANTE</button>
+            <button onclick="selecionarPerfil('atendente')" style="background:#fff; color:#000; margin-top:15px;">ATENDENTE</button>
+        </div>
     </div>
-</section>
 
-<!-- CONVERSOR -->
-<section id="scr-conversor" class="screen">
-    <div class="glass-card">
-        <h2>⚖️ Conversor</h2>
-        <input placeholder="Metros">
-        <input placeholder="Kg">
-        <button class="btn-outline" onclick="Router.go('scr-menu')">Voltar</button>
+    <div id="screen-menu" class="screen">
+        <div class="menu">
+            <h3 id="infoUsuario"></h3>
+            <div class="menu-grid">
+                <button onclick="abrirOSM()">📋 OSM</button>
+                <button onclick="alert('Em breve')">📆 Programada</button>
+                <button onclick="alert('Em breve')">🔁 Conversor</button>
+                <button onclick="alert('Em breve')">📂 Solicitações</button>
+            </div>
+            <button onclick="location.reload()" style="margin-top:30px; background:transparent; color:#ff4444; border:1px solid #ff4444;">Sair</button>
+        </div>
     </div>
-</section>
+
+    <div id="screen-osm" class="screen">
+        <div class="menu">
+            <h3>Consultar MB52</h3>
+            <input type="text" id="buscaMaterial" placeholder="Cód. Sap ou Descrição..." oninput="filtrarEstoque()">
+            <div id="listaProdutos" class="lista-container"></div>
+            <button onclick="mudarTela('screen-menu')" style="margin-top:20px; background:#444; color:#fff;">Voltar</button>
+        </div>
+    </div>
+
+    <footer>FAST REQUEST PRO • v15.6.2 • GitHub + Vercel</footer>
 
 <script>
-const App={user:null,cart:[]};
+const GITHUB_ESTOQUE = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX";
+let appState = { usuario: null, perfil: null, dadosUsuario: null, estoque: [] };
 
-const Auth={
-    login(){
-        const m=inMat=in-mat.value;
-        const p=document.getElementById('in-pass').value;
-        if(!m||!p){alert("Informe matrícula e senha");return;}
-        App.user={NOME:"Usuário "+m,MATRICULA:m,PERFIL:"SOLICITANTE",CENTRO:"1001"};
-        localStorage.setItem('session_fastrequest',JSON.stringify(App.user));
-        UI.build();
-    },
-    logout(){
-        localStorage.removeItem('session_fastrequest');
-        location.reload();
-    },
-    check(){
-        const s=localStorage.getItem('session_fastrequest');
-        if(s){App.user=JSON.parse(s);UI.build();}
+function mudarTela(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+async function login() {
+    const mat = document.getElementById('login_mat').value;
+    const pass = document.getElementById('login_pass').value;
+    const btn = document.getElementById('btn-login');
+    
+    if (!mat || !pass) return alert("Preencha os campos!");
+    
+    btn.innerText = "Conectando...";
+    btn.disabled = true;
+
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario: mat, senha: pass })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `Erro no servidor (${response.status})`);
+        }
+
+        const res = await response.json();
+        
+        if (res.authenticated) {
+            appState.usuario = mat;
+            appState.dadosUsuario = res.user;
+            mudarTela('screen-role');
+        } else {
+            alert("Matrícula ou Senha inválidos!");
+            btn.innerText = "Entrar";
+            btn.disabled = false;
+        }
+    } catch (e) {
+        console.error("Falha no Login:", e);
+        alert("Ocorreu um erro: " + e.message);
+        btn.innerText = "Entrar";
+        btn.disabled = false;
     }
-};
+}
 
-const UI={
-    build(){
-        ui-greeting.innerText="Olá, "+App.user.NOME;
-        ui-badge.innerText=`PERFIL: ${App.user.PERFIL} | CENTRO: ${App.user.CENTRO}`;
-        Router.go("scr-menu");
+function selecionarPerfil(tipo) {
+    appState.perfil = tipo;
+    document.getElementById('infoUsuario').innerText = `Olá, ${appState.dadosUsuario?.nome || appState.usuario}`;
+    mudarTela('screen-menu');
+    carregarEstoqueBase();
+}
+
+async function carregarEstoqueBase() {
+    try {
+        const response = await fetch(GITHUB_ESTOQUE + "?t=" + new Date().getTime());
+        const arrayBuffer = await response.arrayBuffer();
+        const data = new Uint8Array(arrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        
+        const range = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        
+        // Localiza a linha do cabeçalho
+        let indiceCabecalho = range.findIndex(linha => linha && linha.some(cel => cel && cel.toString().includes("Material")));
+        if (indiceCabecalho === -1) indiceCabecalho = 0;
+        
+        const dadosBrutos = XLSX.utils.sheet_to_json(worksheet, { range: indiceCabecalho });
+
+        // Pega o centro do usuário logado
+        const centroUsuario = appState.dadosUsuario?.centro?.toString().toUpperCase().trim();
+
+        appState.estoque = dadosBrutos
+            .map(item => ({
+                codigo: item["Material"],
+                descricao: item["Texto breve material"],
+                saldo: parseFloat(item["Utilização livre"]) || 0,
+                unidade: item["Unid.medida básica"],
+                deposito: item["Depósito"],
+                centro: item["Centro"]?.toString().toUpperCase().trim()
+            }))
+            .filter(i => {
+                const codigoValido = !!i.codigo;
+                // Se o usuário tiver um centro no cadastro, filtra por ele. Caso contrário, mostra tudo.
+                const centroBate = centroUsuario ? (i.centro === centroUsuario) : true;
+                return codigoValido && centroBate;
+            });
+
+        console.log(`Estoque carregado. Centro: ${centroUsuario || 'Todos'}. Itens: ${appState.estoque.length}`);
+    } catch (e) { 
+        console.error("Erro ao ler MB52:", e); 
     }
-};
+}
 
-const OSM={
-    add(){
-        if(!mat-item.value||!qtd-item.value)return;
-        App.cart.push({m:mat-item.value,q:qtd-item.value,p:pat-item.value||"N/A"});
-        this.render();
-        mat-item.value=qtd-item.value=pat-item.value="";
-    },
-    render(){
-        cart-list.innerHTML=App.cart.map(
-            (i,idx)=>`<div class="cart-item">
-                <span>${i.m} - ${i.q}<br><small>${i.p}</small></span>
-                <i class="fas fa-trash" onclick="App.cart.splice(${idx},1);OSM.render()"></i>
-            </div>`
-        ).join("");
-    },
-    finalize(){
-        if(!osm-id.value||!App.cart.length){alert("Preencha a OSM");return;}
-        alert("✅ OSM criada");
-        App.cart=[];
-        this.render();
-        osm-id.value="";
-        Router.go("scr-menu");
-    }
-};
+function abrirOSM() { mudarTela('screen-osm'); filtrarEstoque(); }
 
-const Router={
-    go(id){
-        document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
-};
+function filtrarEstoque() {
+    const termo = document.getElementById('buscaMaterial').value.toLowerCase();
+    const lista = document.getElementById('listaProdutos');
+    lista.innerHTML = "";
 
-window.onload=()=>Auth.check();
+    const filtrados = appState.estoque.filter(i => 
+        (i.codigo && i.codigo.toString().toLowerCase().includes(termo)) || 
+        (i.descricao && i.descricao.toLowerCase().includes(termo))
+    );
+
+    // Mostra os primeiros 50 resultados para performance
+    filtrados.slice(0, 50).forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'item-estoque';
+        div.innerHTML = `
+            <div style="font-weight:bold; color:var(--accent);">${item.codigo}</div>
+            <div style="font-size:13px; margin: 4px 0;">${item.descricao}</div>
+            <div style="font-size:12px; color:#aaa;">Saldo: <b>${item.saldo}</b> ${item.unidade} | Dep: ${item.deposito}</div>
+        `;
+        lista.appendChild(div);
+    });
+}
 </script>
-
 </body>
 </html>
