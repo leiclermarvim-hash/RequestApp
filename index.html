@@ -2,186 +2,86 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>FAST REQUEST – TESTE PAI FILHO</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAST REQUEST – OSM Pai e Filho</title>
 
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.minbody{background:#020417;color:#fff;font-family:Segoe UI;padding:20px}
-.screen{display:none}
-.screen.active{display:block}
-.card{background:#111633;padding:20px;border-radius:10px;max-width:400px;margin:auto}
-button,input,select{width:100%;margin:6px 0;padding:10px}
-.item{border-left:4px solid #00ffe0;padding:6px;margin:6px 0}
+<style>
+body{
+    margin:0;
+    font-family:Segoe UI,sans-serif;
+    background:#020417;
+    color:#e0e0e0;
+}
+.screen{display:none;min-height:100vh;align-items:center;justify-content:center}
+.screen.active{display:flex}
+.card{
+    background:#0c1133;
+    padding:20px;
+    border-radius:12px;
+    width:100%;
+    max-width:420px;
+    box-shadow:0 0 20px rgba(0,0,0,.6)
+}
+h2{color:#00ffe0;text-align:center}
+input,button{
+    width:100%;
+    padding:12px;
+    margin-top:8px;
+    border-radius:8px;
+    border:none;
+}
+button{
+    cursor:pointer;
+    font-weight:700;
+    background:linear-gradient(135deg,#00ffe0,#0066ff);
+    color:#000;
+}
+button.outline{
+    background:none;
+    border:1px solid #666;
+    color:#ccc;
+}
+.item{
+    background:#11194d;
+    padding:8px;
+    border-left:4px solid #00ffe0;
+    margin-top:6px;
+    font-size:14px;
+}
 </style>
 </head>
 
 <body>
 
 <!-- LOGIN -->
-<div id="scr-login" class="screen active card">
-<h3>Login</h3>
-<input id="in-mat" placeholder="Matrícula">
-<input id="in-pass" type="password" placeholder="Senha">
+<div id="scr-login" class="screen active">
+<div class="card">
+<h2>FAST REQUEST</h2>
+<input id="inMat" placeholder="Matrícula">
 <button onclick="Auth.login()">Entrar</button>
+</div>
 </div>
 
 <!-- MENU -->
-<div id="scr-menu" class="screen card">
-<h3 id="ui-greeting"></h3>
+<div id="scr-menu" class="screen">
+<div class="card">
+<h2 id="uiUser"></h2>
 <button onclick="Router.go('scr-osm')">Gerar OSM</button>
 <button onclick="Pedido.meus()">Meus Pedidos</button>
-<button onclick="Auth.logout()">Logout</button>
+<button class="outline" onclick="Auth.logout()">Logout</button>
+</div>
 </div>
 
 <!-- OSM -->
-<div id="scr-osm" class="screen card">
-<h3>Nova OSM</h3>
+<div id="scr-osm" class="screen">
+<div class="card">
+<h2>Nova OSM</h2>
 
-<input id="osm-id" placeholder="Número da OSM">
+<input id="osmId" placeholder="Número da OSM">
 
-<input id="mat-item" placeholder="Código material">
-<input id="qtd-item" type="number" placeholder="Quantidade">
-<input id="pat-item" placeholder="Patrimônio">
+<input id="matItem" placeholder="Material">
+<input id="qtdItem" type="number" placeholder="Quantidade">
+<input id="patItem" placeholder="Patrimônio (opcional)">
 
-<button onclick="OSM.add()">Adicionar Item</button>
+<button onclick="OSM.addItem()">Adicionar Item</button>
 
-<div id="cart-list"></div>
-
-<button onclick="OSM.finalize()">Confirmar OSM</button>
-<button onclick="Router.go('scr-menu')">Voltar</button>
-</div>
-
-<script>
-/* ================= APP ================= */
-const App={
-user:null,
-cart:[],
-osms:[]
-};
-
-/* ================= AUTH ================= */
-const Auth={
-login(){
-if(!in-mat.value)return alert("Digite matrícula");
-App.user={MATRICULA:in-mat.value,NOME:"Usuário Teste"};
-localStorage.setItem("session",JSON.stringify(App.user));
-App.osms=JSON.parse(localStorage.getItem("base_osm"))||[];
-UI.build();
-},
-logout(){
-localStorage.clear();
-location.reload();
-}
-};
-
-/* ================= UI ================= */
-const UI={
-build(){
-ui-greeting.innerText="Olá "+App.user.NOME;
-Router.go("scr-menu");
-}
-};
-
-/* ================= OSM (PAI → FILHOS) ================= */
-const OSM={
-add(){
-if(!mat-item.value||!qtd-item.value)return alert("Preencha item");
-App.cart.push({
-material:mat-item.value,
-quantidade:+qtd-item.value,
-patrimonio:pat-item.value||"N/A"
-});
-this.render();
-mat-item.value=qtd-item.value=pat-item.value="";
-},
-render(){
-cart-list.innerHTML=App.cart.map(
-i=>`<div class="item">${i.material} – ${i.quantidade}</div>`
-).join("");
-},
-async finalize() {
-    if (!App.cart.length) return alert("Adicione itens!");
-    if (!osm-id.value) return alert("Informe o número da OSM!");
-
-    const osmPai = {
-        id: osm-id.value,
-        solicitante: {
-            matricula: App.user.MATRICULA,
-            nome: App.user.NOME
-        },
-        centro: App.user.CENTRO,
-        data: new Date().toISOString(),
-        status: "AGUARDANDO",
-        itens: [...App.cart]
-    };
-
-    const r = await fetch("/api/pedidos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(osmPai)
-    });
-
-    if (!r.ok) {
-        alert("Erro ao salvar pedido!");
-        return;
-    }
-
-    alert("✅ Pedido enviado e salvo no base_pedidos.json!");
-
-    App.cart = [];
-    OSM.render();
-    osm-id.value = "";
-    Router.go("scr-menu");
-}
-
-const osmPai={
-id:osm-id.value,
-solicitante:App.user.MATRICULA,
-data:new Date().toISOString(),
-status:"AGUARDANDO",
-itens:[...App.cart] // ✅ FILHOS
-};
-
-App.osms.push(osmPai);
-localStorage.setItem("base_osm",JSON.stringify(App.osms));
-
-alert("OSM criada!");
-App.cart=[];
-this.render();
-osm-id.value="";
-Router.go("scr-menu");
-}
-};
-
-/* ================= PEDIDOS ================= */
-const Pedido={
-meus(){
-const m=App.osms.filter(o=>o.solicitante===App.user.MATRICULA);
-console.clear();
-console.log("OSMs:",m);
-alert("Veja no console (F12)");
-}
-};
-
-/* ================= ROUTER ================= */
-const Router={
-go(id){
-document.querySelectorAll(".screen").forEach(
-s=>s.classList.remove("active")
-);
-document.getElementById(id).classList.add("active");
-}
-};
-
-/* ================= START ================= */
-window.onload=()=>{
-const s=localStorage.getItem("session");
-if(s){
-App.user=JSON.parse(s);
-App.osms=JSON.parse(localStorage.getItem("base_osm"))||[];
-UI.build();
-}
-};
-</script>
-
-</body>
-</html>
