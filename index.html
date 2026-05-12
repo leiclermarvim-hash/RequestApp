@@ -98,9 +98,40 @@ cart-list.innerHTML=App.cart.map(
 i=>`<div class="item">${i.material} – ${i.quantidade}</div>`
 ).join("");
 },
-finalize(){
-if(!App.cart.length)return alert("Sem itens");
-if(!osm-id.value)return alert("Informe a OSM");
+async finalize() {
+    if (!App.cart.length) return alert("Adicione itens!");
+    if (!osm-id.value) return alert("Informe o número da OSM!");
+
+    const osmPai = {
+        id: osm-id.value,
+        solicitante: {
+            matricula: App.user.MATRICULA,
+            nome: App.user.NOME
+        },
+        centro: App.user.CENTRO,
+        data: new Date().toISOString(),
+        status: "AGUARDANDO",
+        itens: [...App.cart]
+    };
+
+    const r = await fetch("/api/pedidos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(osmPai)
+    });
+
+    if (!r.ok) {
+        alert("Erro ao salvar pedido!");
+        return;
+    }
+
+    alert("✅ Pedido enviado e salvo no base_pedidos.json!");
+
+    App.cart = [];
+    OSM.render();
+    osm-id.value = "";
+    Router.go("scr-menu");
+}
 
 const osmPai={
 id:osm-id.value,
