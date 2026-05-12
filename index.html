@@ -1,4 +1,3 @@
-<backup>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
@@ -60,7 +59,7 @@
         <div class="menu">
             <h3 id="infoUsuario"></h3>
             <div class="menu-grid">
-                <button onclick="abrirOSM(<button onclick="window.location.href='gerarosm.html)">📋 OSM</button>
+                <button onclick="abrirOSM()">📋 OSM</button>
                 <button onclick="alert('Em breve')">📆 Programada</button>
                 <button onclick="alert('Em breve')">🔁 Conversor</button>
                 <button onclick="alert('Em breve')">📂 Solicitações</button>
@@ -132,7 +131,8 @@ async function login() {
 
 function selecionarPerfil(tipo) {
     appState.perfil = tipo;
-    document.getElementById('infoUsuario').innerText = `Olá, ${appState.dadosUsuario?.nome || appState.usuario}`;
+    document.getElementById('infoUsuario').innerText =
+        `Olá, ${appState.dadosUsuario?.nome || appState.usuario}`;
     mudarTela('screen-menu');
     carregarEstoqueBase();
 }
@@ -146,14 +146,10 @@ async function carregarEstoqueBase() {
         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
         
         const range = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-        
-        // Localiza a linha do cabeçalho
         let indiceCabecalho = range.findIndex(linha => linha && linha.some(cel => cel && cel.toString().includes("Material")));
         if (indiceCabecalho === -1) indiceCabecalho = 0;
         
         const dadosBrutos = XLSX.utils.sheet_to_json(worksheet, { range: indiceCabecalho });
-
-        // Pega o centro do usuário logado
         const centroUsuario = appState.dadosUsuario?.centro?.toString().toUpperCase().trim();
 
         appState.estoque = dadosBrutos
@@ -167,18 +163,20 @@ async function carregarEstoqueBase() {
             }))
             .filter(i => {
                 const codigoValido = !!i.codigo;
-                // Se o usuário tiver um centro no cadastro, filtra por ele. Caso contrário, mostra tudo.
                 const centroBate = centroUsuario ? (i.centro === centroUsuario) : true;
                 return codigoValido && centroBate;
             });
 
         console.log(`Estoque carregado. Centro: ${centroUsuario || 'Todos'}. Itens: ${appState.estoque.length}`);
-    } catch (e) { 
-        console.error("Erro ao ler MB52:", e); 
+    } catch (e) {
+        console.error("Erro ao ler MB52:", e);
     }
 }
 
-function abrirOSM() { mudarTela('screen-osm'); filtrarEstoque(); }
+function abrirOSM() {
+    mudarTela('screen-osm');
+    filtrarEstoque();
+}
 
 function filtrarEstoque() {
     const termo = document.getElementById('buscaMaterial').value.toLowerCase();
@@ -186,11 +184,10 @@ function filtrarEstoque() {
     lista.innerHTML = "";
 
     const filtrados = appState.estoque.filter(i => 
-        (i.codigo && i.codigo.toString().toLowerCase().includes(termo)) || 
+        (i.codigo && i.codigo.toString().toLowerCase().includes(termo)) ||
         (i.descricao && i.descricao.toLowerCase().includes(termo))
     );
 
-    // Mostra os primeiros 50 resultados para performance
     filtrados.slice(0, 50).forEach(item => {
         const div = document.createElement('div');
         div.className = 'item-estoque';
