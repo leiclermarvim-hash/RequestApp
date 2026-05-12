@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FAST REQUEST – OSM Pai e Filho</title>
+<title>FAST REQUEST</title>
 
 <style>
 body{
@@ -12,21 +12,25 @@ body{
     background:#020417;
     color:#e0e0e0;
 }
-.screen{display:none;min-height:100vh;align-items:center;justify-content:center}
+.screen{
+    display:none;
+    min-height:100vh;
+    align-items:center;
+    justify-content:center;
+}
 .screen.active{display:flex}
 .card{
     background:#0c1133;
-    padding:20px;
-    border-radius:12px;
+    padding:24px;
+    border-radius:14px;
     width:100%;
     max-width:420px;
-    box-shadow:0 0 20px rgba(0,0,0,.6)
 }
 h2{color:#00ffe0;text-align:center}
 input,button{
     width:100%;
     padding:12px;
-    margin-top:8px;
+    margin-top:10px;
     border-radius:8px;
     border:none;
 }
@@ -46,7 +50,6 @@ button.outline{
     padding:8px;
     border-left:4px solid #00ffe0;
     margin-top:6px;
-    font-size:14px;
 }
 </style>
 </head>
@@ -57,7 +60,10 @@ button.outline{
 <div id="scr-login" class="screen active">
 <div class="card">
 <h2>FAST REQUEST</h2>
+
 <input id="inMat" placeholder="Matrícula">
+<input id="inPass" type="password" placeholder="Senha">
+
 <button onclick="Auth.login()">Entrar</button>
 </div>
 </div>
@@ -81,7 +87,145 @@ button.outline{
 
 <input id="matItem" placeholder="Material">
 <input id="qtdItem" type="number" placeholder="Quantidade">
-<input id="patItem" placeholder="Patrimônio (opcional)">
+<input id="patItem" placeholder="Patrimônio">
 
 <button onclick="OSM.addItem()">Adicionar Item</button>
 
+<div id="cart"></div>
+
+<button onclick="OSM.enviar()">Confirmar OSM</button>
+<button class="outline" onclick="Router.go('scr-menu')">Voltar</button>
+</div>
+</div>
+
+<script>
+/* ================= APP ================= */
+const App={
+    user:null,
+    cart:[],
+    pedidos:[]
+};
+
+/* ================= AUTH ================= */
+const Auth={
+    login(){
+        const mat = inMat.value.trim();
+        const pass = inPass.value.trim();
+
+        if(!mat || !pass){
+            alert("Informe matrícula e senha");
+            return;
+        }
+
+        // 🔐 Simulação de autenticação (igual antes)
+        App.user = {
+            matricula: mat,
+            nome: "Usuário " + mat
+        };
+
+        sessionStorage.setItem("user", JSON.stringify(App.user));
+        UI.init();
+    },
+    logout(){
+        sessionStorage.clear();
+        location.reload();
+    }
+};
+
+/* ================= UI ================= */
+const UI={
+    init(){
+        uiUser.innerText = "Olá, " + App.user.nome;
+        Router.go("scr-menu");
+    }
+};
+
+/* ================= OSM ================= */
+const OSM={
+    addItem(){
+        if(!matItem.value || !qtdItem.value){
+            alert("Preencha material e quantidade");
+            return;
+        }
+
+        App.cart.push({
+            material: matItem.value,
+            quantidade: Number(qtdItem.value),
+            patrimonio: patItem.value || "N/A"
+        });
+
+        matItem.value = qtdItem.value = patItem.value = "";
+        this.render();
+    },
+    render(){
+        cart.innerHTML = App.cart.map(i =>
+            `<div class="item">
+                ${i.material} | Qtd: ${i.quantidade}<br>
+                <small>${i.patrimonio}</small>
+            </div>`
+        ).join("");
+    },
+    async enviar(){
+        if(!osmId.value || !App.cart.length){
+            alert("Informe OSM e adicione itens");
+            return;
+        }
+
+        const osm = {
+            id: osmId.value,
+            solicitante: App.user,
+            data: new Date().toISOString(),
+            status: "AGUARDANDO",
+            itens: App.cart
+        };
+
+        try{
+            await fetch("/api/pedidos",{
+                method:"POST",
+                headers:{ "Content-Type":"application/json" },
+                body: JSON.stringify(osm)
+            });
+        }catch(e){
+            console.warn("API indisponível");
+        }
+
+        App.pedidos.push(osm);
+
+        alert("✅ OSM criada");
+        App.cart=[];
+        this.render();
+        osmId.value="";
+        Router.go("scr-menu");
+    }
+};
+
+/* ================= PEDIDOS ================= */
+const Pedido={
+    meus(){
+        console.clear();
+        console.log(App.pedidos);
+        alert("Pedidos no console (F12)");
+    }
+};
+
+/* ================= ROUTER ================= */
+const Router={
+    go(id){
+        document.querySelectorAll(".screen")
+            .forEach(s=>s.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+    }
+};
+
+/* ================= START ================= */
+window.onload = () => {
+    const u = sessionStorage.getItem("user");
+    if(u){
+        App.user = JSON.parse(u);
+        UI.init();
+    }
+};
+</script>
+
+</body>
+</html>
