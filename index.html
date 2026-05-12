@@ -2,138 +2,33 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FAST REQUEST</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FAST REQUEST PRO</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
+:root {
+    --bg-dark:#020417;
+    --bg-card:rgba(255,255,255,0.04);
+    --accent:#00ffe0;
+    --primary:#0066ff;
+    --danger:#ff4444;
+    --text-main:#e0e0e0;
+    --transition:all .3s ease;
+}
+*{box-sizing:border-box;margin:0;padding:0}
 body{
-    margin:0;
-    height:100vh;
+    font-family:'Segoe UI',sans-serif;
+    background:var(--bg-dark);
+    color:var(--text-main);
+    min-height:100vh;
     display:flex;
-    align-items:center;
     justify-content:center;
-    background:radial-gradient(circle at top,#02062a,#010314);
-    font-family:Segoe UI,sans-serif;
 }
-.login-box{
-    width:360px;
-    background:linear-gradient(180deg,#0b1240,#080c2b);
-    padding:30px;
-    border-radius:14px;
-    box-shadow:0 20px 40px rgba(0,0,0,.6);
-}
-.login-box h2{
-    text-align:center;
-    color:#00ffe0;
-    margin-bottom:25px;
-}
-.login-box input{
-    width:100%;
-    padding:14px;
-    margin-bottom:12px;
-    border-radius:10px;
-    border:none;
-    font-size:15px;
-}
-.login-box button{
-    width:100%;
-    padding:14px;
-    border-radius:10px;
-    border:none;
-    font-weight:700;
-    cursor:pointer;
-    background:linear-gradient(90deg,#00ffe0,#0080ff);
-    color:#000;
-}
-.screen{display:none}
-.screen.active{display:block}
-</style>
-</head>
-
-<body>
-
-<!-- LOGIN -->
-<div id="scr-login" class="login-box screen active">
-    <h2>FAST REQUEST</h2>
-    <input id="inMat" placeholder="Matrícula">
-    <input id="inPass" type="password" placeholder="Senha">
-    <button onclick="Auth.login()">Entrar</button>
-</div>
-
-<!-- MENU -->
-<div id="scr-menu" class="login-box screen">
-    <h2 id="uiUser"></h2>
-    <button onclick="Router.go('scr-osm')">Gerar OSM</button>
-    <button onclick="Auth.logout()" style="margin-top:10px;background:#222;color:#fff">Logout</button>
-</div>
-
-<!-- OSM -->
-<div id="scr-osm" class="login-box screen">
-    <h2>Nova OSM</h2>
-    <input id="osmId" placeholder="Número da OSM">
-    <input id="matItem" placeholder="Material">
-    <input id="qtdItem" type="number" placeholder="Quantidade">
-    <button onclick="OSM.addItem()">Adicionar</button>
-    <div id="cart"></div>
-    <button onclick="OSM.enviar()">Confirmar</button>
-    <button onclick="Router.go('scr-menu')" style="margin-top:10px;background:#222;color:#fff">Voltar</button>
-</div>
-
-<script>
-const App={user:null,cart:[]};
-
-const Auth={
-    login(){
-        if(!inMat.value || !inPass.value){
-            alert("Informe matrícula e senha");
-            return;
-        }
-        App.user={nome:"Usuário "+inMat.value,matricula:inMat.value};
-        sessionStorage.setItem("user",JSON.stringify(App.user));
-        uiUser.innerText="Olá, "+App.user.nome;
-        Router.go("scr-menu");
-    },
-    logout(){
-        sessionStorage.clear();
-        location.reload();
-    }
-};
-
-const OSM={
-    addItem(){
-        App.cart.push({material:matItem.value,qtd:qtdItem.value});
-        cart.innerHTML+=`<div>${matItem.value} - ${qtdItem.value}</div>`;
-        matItem.value=qtdItem.value="";
-    },
-    enviar(){
-        if(!osmId.value || !App.cart.length){
-            alert("Complete a OSM");
-            return;
-        }
-        alert("✅ OSM criada");
-        App.cart=[];
-        cart.innerHTML="";
-        osmId.value="";
-        Router.go("scr-menu");
-    }
-};
-
-const Router={
-    go(id){
-        document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-        document.getElementById(id).classList.add("active");
-    }
-};
-
-window.onload=()=>{
-    const u=sessionStorage.getItem("user");
-    if(u){
-        App.user=JSON.parse(u);
-        uiUser.innerText="Olá, "+App.user.nome;
-        Router.go("scr-menu");
-    }
-};
-</script>
-
-</body>
-</html>
+.screen{display:none;width:100%;max-width:600px;padding:20px}
+.screen.active{display:flex;flex-direction:column}
+.glass-card{
+    background:var(--bg-card);
+    backdrop-filter:blur(15px);
