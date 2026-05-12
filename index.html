@@ -1,34 +1,254 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>FAST REQUEST PRO</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FAST REQUEST PRO - V20.0</title>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- LIBS -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
 
-<style>
-:root {
-    --bg-dark:#020417;
-    --bg-card:rgba(255,255,255,0.04);
-    --accent:#00ffe0;
-    --primary:#0066ff;
-    --danger:#ff4444;
-    --text-main:#e0e0e0;
-    --transition:all .3s ease;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-    font-family:'Segoe UI',sans-serif;
-    background:var(--bg-dark);
-    color:var(--text-main);
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-}
-.screen{display:none;width:100%;max-width:600px;padding:20px}
-.screen.active{display:flex;flex-direction:column}
-.glass-card{
-    background:var(--bg-card);
-    backdrop-filter:blur(15px);
+    <style>
+        :root {
+            --bg-dark:#020417;
+            --bg-card:rgba(255,255,255,0.04);
+            --accent:#00ffe0;
+            --primary:#0066ff;
+            --danger:#ff4444;
+            --text-main:#e0e0e0;
+            --transition:all .3s ease;
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{
+            font-family:'Segoe UI',sans-serif;
+            background:var(--bg-dark);
+            color:var(--text-main);
+            min-height:100vh;
+            display:flex;
+            justify-content:center;
+        }
+        .screen{display:none;width:100%;max-width:600px;padding:20px}
+        .screen.active{display:flex;flex-direction:column}
+        .glass-card{
+            background:var(--bg-card);
+            backdrop-filter:blur(15px);
+            border:1px solid rgba(255,255,255,.1);
+            border-radius:20px;
+            padding:25px;
+            box-shadow:0 15px 35px rgba(0,0,0,.5);
+        }
+        h2{color:var(--accent);margin-bottom:20px}
+        .label-tiny{
+            font-size:10px;
+            text-transform:uppercase;
+            color:var(--accent);
+            font-weight:800;
+            margin:10px 0 5px;
+            display:block;
+        }
+        input,select,button{
+            width:100%;
+            padding:14px;
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,.1);
+            background:rgba(255,255,255,.06);
+            color:#fff;
+            margin-bottom:10px;
+        }
+        .btn-primary{
+            background:linear-gradient(135deg,var(--accent),var(--primary));
+            color:#000;
+            font-weight:700;
+            border:none;
+            cursor:pointer;
+        }
+        .btn-outline{
+            background:none;
+            border:1px solid var(--danger);
+            color:var(--danger);
+            cursor:pointer;
+            margin-top:10px;
+        }
+        .grid-nav{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+        .nav-card{
+            height:110px;
+            border:1px solid rgba(255,255,255,.1);
+            border-radius:18px;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            gap:10px;
+            cursor:pointer;
+            background:rgba(255,255,255,.02);
+            transition:var(--transition);
+            text-align:center;
+            font-size:13px;
+        }
+        .nav-card:hover{
+            border-color:var(--accent);
+            background:rgba(0,255,224,.1);
+            color:var(--accent);
+            transform:translateY(-3px);
+        }
+        .nav-card i{font-size:24px}
+        .search-popover{
+            position:absolute;
+            width:100%;
+            background:#0a0f2c;
+            z-index:100;
+            border-radius:10px;
+            border:1px solid var(--accent);
+            display:none;
+            max-height:200px;
+            overflow-y:auto;
+        }
+        .item-row{padding:12px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer}
+        .cart-item{
+            background:rgba(0,255,224,.05);
+            border-left:4px solid var(--accent);
+            padding:12px;
+            border-radius:8px;
+            margin-bottom:8px;
+            display:flex;
+            justify-content:space-between;
+        }
+        .hidden{display:none!important}
+        .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    </style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<section id="scr-login" class="screen active">
+    <div class="glass-card" style="max-width:380px;align-self:center;text-align:center">
+        <i class="fas fa-shield-alt" style="font-size:40px;color:var(--accent)"></i>
+        <h2>FAST REQUEST</h2>
+        <input id="in-mat" placeholder="Matrícula">
+        <input id="in-pass" type="password" placeholder="Senha">
+        <button class="btn-primary" onclick="Auth.login()">ENTRAR</button>
+    </div>
+</section>
+
+<!-- MENU -->
+<section id="scr-menu" class="screen">
+    <div class="glass-card">
+        <h2 id="ui-greeting">Olá</h2>
+        <div id="ui-badge" style="font-size:11px;color:var(--accent);margin-bottom:20px"></div>
+
+        <div class="grid-nav">
+            <div class="nav-card p-solic p-adm" onclick="Router.go('scr-osm')">
+                <i class="fas fa-file-invoice"></i> Gerar OSM
+            </div>
+            <div class="nav-card p-solic p-adm" onclick="alert('Meus Pedidos em breve')">
+                <i class="fas fa-list-ul"></i> Meus Pedidos
+            </div>
+            <div class="nav-card p-solic p-adm" onclick="Router.go('scr-conversor')">
+                <i class="fas fa-weight-hanging"></i> Conversor
+            </div>
+        </div>
+
+        <button class="btn-outline" onclick="Auth.logout()">LOGOUT</button>
+    </div>
+</section>
+
+<!-- OSM -->
+<section id="scr-osm" class="screen">
+    <div class="glass-card">
+        <h2>📋 Gerar OSM</h2>
+
+        <span class="label-tiny">Nº OSM</span>
+        <input id="osm-id" placeholder="ALFANUMÉRICO">
+
+        <span class="label-tiny">Adicionar Material</span>
+        <input id="mat-item" placeholder="Material">
+        <input id="qtd-item" type="number" placeholder="Quantidade">
+        <input id="pat-item" placeholder="Patrimônio">
+
+        <button class="btn-primary" onclick="OSM.add()">Adicionar</button>
+
+        <div id="cart-list" style="margin-top:10px"></div>
+
+        <button class="btn-primary" onclick="OSM.finalize()">Confirmar</button>
+        <button class="btn-outline" onclick="Router.go('scr-menu')">Voltar</button>
+    </div>
+</section>
+
+<!-- CONVERSOR -->
+<section id="scr-conversor" class="screen">
+    <div class="glass-card">
+        <h2>⚖️ Conversor</h2>
+        <input placeholder="Metros">
+        <input placeholder="Kg">
+        <button class="btn-outline" onclick="Router.go('scr-menu')">Voltar</button>
+    </div>
+</section>
+
+<script>
+const App={user:null,cart:[]};
+
+const Auth={
+    login(){
+        const m=inMat=in-mat.value;
+        const p=document.getElementById('in-pass').value;
+        if(!m||!p){alert("Informe matrícula e senha");return;}
+        App.user={NOME:"Usuário "+m,MATRICULA:m,PERFIL:"SOLICITANTE",CENTRO:"1001"};
+        localStorage.setItem('session_fastrequest',JSON.stringify(App.user));
+        UI.build();
+    },
+    logout(){
+        localStorage.removeItem('session_fastrequest');
+        location.reload();
+    },
+    check(){
+        const s=localStorage.getItem('session_fastrequest');
+        if(s){App.user=JSON.parse(s);UI.build();}
+    }
+};
+
+const UI={
+    build(){
+        ui-greeting.innerText="Olá, "+App.user.NOME;
+        ui-badge.innerText=`PERFIL: ${App.user.PERFIL} | CENTRO: ${App.user.CENTRO}`;
+        Router.go("scr-menu");
+    }
+};
+
+const OSM={
+    add(){
+        if(!mat-item.value||!qtd-item.value)return;
+        App.cart.push({m:mat-item.value,q:qtd-item.value,p:pat-item.value||"N/A"});
+        this.render();
+        mat-item.value=qtd-item.value=pat-item.value="";
+    },
+    render(){
+        cart-list.innerHTML=App.cart.map(
+            (i,idx)=>`<div class="cart-item">
+                <span>${i.m} - ${i.q}<br><small>${i.p}</small></span>
+                <i class="fas fa-trash" onclick="App.cart.splice(${idx},1);OSM.render()"></i>
+            </div>`
+        ).join("");
+    },
+    finalize(){
+        if(!osm-id.value||!App.cart.length){alert("Preencha a OSM");return;}
+        alert("✅ OSM criada");
+        App.cart=[];
+        this.render();
+        osm-id.value="";
+        Router.go("scr-menu");
+    }
+};
+
+const Router={
+    go(id){
+        document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+};
+
+window.onload=()=>Auth.check();
+</script>
+
+</body>
+</html>
