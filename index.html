@@ -1,313 +1,156 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FAST REQUEST PRO - V20.0</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FAST REQUEST – TESTE PAI FILHO</title>
 
-    <style>
-        :root {
-            --bg-dark: #020417; --bg-card: rgba(255, 255, 255, 0.04);
-            --accent: #00ffe0; --primary: #0066ff; --danger: #ff4444;
-            --text-main: #e0e0e0; --transition: all 0.3s ease;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; }
-
-        .screen { display: none; width: 100%; max-width: 600px; padding: 20px; animation: fadeIn 0.3s ease; }
-        .screen.active { display: flex; flex-direction: column; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .glass-card { background: var(--bg-card); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
-        
-        h2 { color: var(--accent); margin-bottom: 20px; font-size: 1.5rem; }
-        .label-tiny { font-size: 10px; text-transform: uppercase; color: var(--accent); font-weight: 800; margin: 10px 0 5px 0; display: block; }
-
-        input, select, button { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.06); color: #fff; margin-bottom: 10px; }
-        input:focus { border-color: var(--accent); }
-        
-        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--primary)); color: #000; font-weight: 700; border: none; cursor: pointer; }
-        .btn-outline { background: transparent; border: 1px solid var(--danger); color: var(--danger); cursor: pointer; margin-top: 20px; }
-
-        .grid-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
-        .nav-card {
-            height: 110px; border: 1px solid rgba(255,255,255,0.1); border-radius: 18px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 10px; cursor: pointer; transition: var(--transition); background: rgba(255,255,255,0.02);
-            text-align: center; padding: 10px; font-size: 13px;
-        }
-        .nav-card:hover { border-color: var(--accent); background: rgba(0, 255, 224, 0.1); color: var(--accent); transform: translateY(-3px); }
-        .nav-card i { font-size: 24px; }
-
-        .search-popover { position: absolute; width: 100%; background: #0a0f2c; z-index: 100; border-radius: 10px; border: 1px solid var(--accent); display: none; max-height: 200px; overflow-y: auto; }
-        .item-row { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
-        .cart-item { background: rgba(0, 255, 224, 0.05); border-left: 4px solid var(--accent); padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; }
-
-        .hidden { display: none !important; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    </style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.minbody{background:#020417;color:#fff;font-family:Segoe UI;padding:20px}
+.screen{display:none}
+.screen.active{display:block}
+.card{background:#111633;padding:20px;border-radius:10px;max-width:400px;margin:auto}
+button,input,select{width:100%;margin:6px 0;padding:10px}
+.item{border-left:4px solid #00ffe0;padding:6px;margin:6px 0}
+</style>
 </head>
+
 <body>
 
-    <!-- LOGIN -->
-    <section id="scr-login" class="screen active">
-        <div class="glass-card" style="max-width: 380px; align-self: center; text-align: center;">
-            <i class="fas fa-shield-alt" style="font-size: 40px; color: var(--accent); margin-bottom: 15px;"></i>
-            <h2>FAST REQUEST</h2>
-            <input type="text" id="in-mat" placeholder="Matrícula">
-            <input type="password" id="in-pass" placeholder="Senha">
-            <button class="btn-primary" onclick="Auth.login()">ENTRAR</button>
-        </div>
-    </section>
+<!-- LOGIN -->
+<div id="scr-login" class="screen active card">
+<h3>Login</h3>
+<input id="in-mat" placeholder="Matrícula">
+<input id="in-pass" type="password" placeholder="Senha">
+<button onclick="Auth.login()">Entrar</button>
+</div>
 
-    <!-- MENU PRINCIPAL -->
-    <section id="scr-menu" class="screen">
-        <div class="glass-card">
-            <h2 id="ui-greeting">Olá</h2>
-            <div id="ui-badge" style="font-size: 11px; color: var(--accent); margin-bottom: 20px;"></div>
+<!-- MENU -->
+<div id="scr-menu" class="screen card">
+<h3 id="ui-greeting"></h3>
+<button onclick="Router.go('scr-osm')">Gerar OSM</button>
+<button onclick="Pedido.meus()">Meus Pedidos</button>
+<button onclick="Auth.logout()">Logout</button>
+</div>
 
-            <div id="main-nav" class="grid-nav">
-                <!-- Itens Solicitante -->
-                <div class="nav-card p-solic p-adm" onclick="Router.go('scr-osm')"><i class="fas fa-file-invoice"></i> Gerar OSM</div>
-                <div class="nav-card p-solic p-adm" onclick="alert('Separar Programadas em breve')"><i class="fas fa-boxes"></i> Separar Programadas</div>
-                <div class="nav-card p-solic p-aprov p-adm" onclick="Router.go('scr-conversor')"><i class="fas fa-weight-hanging"></i> Conversor</div>
-                <div class="nav-card p-solic p-adm" onclick="alert('Meus Pedidos em breve')"><i class="fas fa-list-ul"></i> Meus Pedidos</div>
+<!-- OSM -->
+<div id="scr-osm" class="screen card">
+<h3>Nova OSM</h3>
 
-                <!-- Itens Aprovador -->
-                <div class="nav-card p-aprov p-adm" onclick="alert('Verificar Programadas em breve')"><i class="fas fa-search"></i> Verificar Programadas</div>
-                <div class="nav-card p-aprov p-adm" onclick="alert('Aprovar OSM em breve')"><i class="fas fa-check-circle"></i> Aprovar OSM</div>
-                <div class="nav-card p-aprov" onclick="Router.go('scr-osm')"><i class="fas fa-file-invoice"></i> Gerar OSM</div>
+<input id="osm-id" placeholder="Número da OSM">
 
-                <!-- Itens Administrador -->
-                <div class="nav-card p-adm" onclick="alert('Verificar Usuários')"><i class="fas fa-users"></i> Usuários</div>
-                <div class="nav-card p-adm" onclick="alert('Materiais Cadastrados')"><i class="fas fa-box-open"></i> Materiais</div>
-                <div class="nav-card p-adm" onclick="alert('Enviando MB52 para Github...')"><i class="fab fa-github"></i> Atualizar MB52</div>
-            </div>
+<input id="mat-item" placeholder="Código material">
+<input id="qtd-item" type="number" placeholder="Quantidade">
+<input id="pat-item" placeholder="Patrimônio">
 
-            <button class="btn-outline" onclick="Auth.logout()">LOGOUT</button>
-        </div>
-    </section>
+<button onclick="OSM.add()">Adicionar Item</button>
 
-    <!-- GERAR OSM -->
-    <section id="scr-osm" class="screen">
-        <div class="glass-card">
-            <h2>📋 Gerar OSM</h2>
-            <div class="grid-2">
-                <div><span class="label-tiny">Aprovador</span><select id="sel-aprovador" onchange="OSM.sync()"></select></div>
-                <div><span class="label-tiny">Matrícula</span><input type="text" id="osm-mat-aprov" readonly></div>
-            </div>
-            
-            <div class="grid-2">
-                <div><span class="label-tiny">Nº OSM</span><input type="text" id="osm-id" placeholder="ALFANUMÉRICO" oninput="this.value=this.value.toUpperCase()"></div>
-                <div><span class="label-tiny">Saída Geral ADM?</span><select id="osm-adm"><option>NÃO</option><option>SIM</option></select></div>
-            </div>
+<div id="cart-list"></div>
 
-            <span class="label-tiny">Adicionar Material</span>
-            <div style="position: relative;">
-                <input type="text" id="search-in" placeholder="Código ou Nome..." onkeyup="OSM.search(this.value)">
-                <div id="search-pop" class="search-popover"></div>
-            </div>
+<button onclick="OSM.finalize()">Confirmar OSM</button>
+<button onclick="Router.go('scr-menu')">Voltar</button>
+</div>
 
-            <div id="add-panel" class="hidden" style="margin-top:10px; padding:15px; border:1px solid var(--accent); border-radius:10px;">
-                <p id="add-label" style="font-size:12px; font-weight:bold;"></p>
-                <div class="grid-2">
-                    <input type="number" id="add-qtd" placeholder="Qtd">
-                    <select id="add-trafo" onchange="document.getElementById('add-pat').classList.toggle('hidden', this.value==='NÃO')">
-                        <option value="NÃO">Trafo? NÃO</option><option value="SIM">SIM</option>
-                    </select>
-                </div>
-                <input type="text" id="add-pat" class="hidden" placeholder="Patrimônio">
-                <button class="btn-primary" style="font-size:12px; padding:8px;" onclick="OSM.add()">ADICIONAR</button>
-            </div>
+<script>
+/* ================= APP ================= */
+const App={
+user:null,
+cart:[],
+osms:[]
+};
 
-            <div id="cart-list" style="margin-top:15px;"></div>
-            <button class="btn-primary" onclick="OSM.finalize()">CONFIRMAR REQUISIÇÃO</button>
-            <button class="btn-outline" style="border-color:#555; color:#aaa" onclick="Router.go('scr-menu')">VOLTAR</button>
-        </div>
-    </section>
+/* ================= AUTH ================= */
+const Auth={
+login(){
+if(!in-mat.value)return alert("Digite matrícula");
+App.user={MATRICULA:in-mat.value,NOME:"Usuário Teste"};
+localStorage.setItem("session",JSON.stringify(App.user));
+App.osms=JSON.parse(localStorage.getItem("base_osm"))||[];
+UI.build();
+},
+logout(){
+localStorage.clear();
+location.reload();
+}
+};
 
-    <!-- CONVERSOR -->
-    <section id="scr-conversor" class="screen">
-        <div class="glass-card">
-            <h2>⚖️ Conversor Kg x M</h2>
-            <select id="c-fator"><option value="0.190">Multiplex 1x16 (0.190)</option><option value="0.320">Multiplex 1x35 (0.320)</option></select>
-            <div class="grid-2">
-                <input type="number" id="c-m" placeholder="Metros" oninput="Tool.calc(1)">
-                <input type="number" id="c-k" placeholder="Kg" oninput="Tool.calc(2)">
-            </div>
-            <button class="btn-primary" onclick="Router.go('scr-menu')">VOLTAR</button>
-        </div>
-    </section>
+/* ================= UI ================= */
+const UI={
+build(){
+ui-greeting.innerText="Olá "+App.user.NOME;
+Router.go("scr-menu");
+}
+};
 
-    <script>
-        const App = {
-            user: null, users: [], stock: [], cart: [],
-            urls: {
-                u: "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/refs/heads/main/configuracoes/usuarios.csv",
-                s: "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX"
-            }
-        };
+/* ================= OSM (PAI → FILHOS) ================= */
+const OSM={
+add(){
+if(!mat-item.value||!qtd-item.value)return alert("Preencha item");
+App.cart.push({
+material:mat-item.value,
+quantidade:+qtd-item.value,
+patrimonio:pat-item.value||"N/A"
+});
+this.render();
+mat-item.value=qtd-item.value=pat-item.value="";
+},
+render(){
+cart-list.innerHTML=App.cart.map(
+i=>`<div class="item">${i.material} – ${i.quantidade}</div>`
+).join("");
+},
+finalize(){
+if(!App.cart.length)return alert("Sem itens");
+if(!osm-id.value)return alert("Informe a OSM");
 
-        const Auth = {
-            async login() {
-                const m = document.getElementById('in-mat').value;
-                const p = document.getElementById('in-pass').value;
-                try {
-                    const r = await fetch(App.urls.u + "?t=" + Date.now());
-                    const t = await r.text();
-                    const lines = t.split('\n').filter(l => l.trim());
-                    const sep = t.includes(';') ? ';' : ',';
-                    const head = lines[0].split(sep).map(h => h.trim().toUpperCase());
-                    
-                    App.users = lines.slice(1).map(l => {
-                        let o = {}, c = l.split(sep);
-                        head.forEach((h, i) => o[h] = c[i]?.trim());
-                        return o;
-                    });
+const osmPai={
+id:osm-id.value,
+solicitante:App.user.MATRICULA,
+data:new Date().toISOString(),
+status:"AGUARDANDO",
+itens:[...App.cart] // ✅ FILHOS
+};
 
-                    App.user = App.users.find(u => u.MATRICULA === m && u.SENHA === p);
-                    
-                    if(App.user) {
-                        localStorage.setItem('session_fastrequest', JSON.stringify(App.user));
-                        await this.loadStock();
-                        UI.build();
-                    } else alert("Matrícula ou Senha inválida");
-                } catch(e) { alert("Erro ao carregar banco de dados"); }
-            },
+App.osms.push(osmPai);
+localStorage.setItem("base_osm",JSON.stringify(App.osms));
 
-            async checkSession() {
-                const saved = localStorage.getItem('session_fastrequest');
-                if(saved) {
-                    App.user = JSON.parse(saved);
-                    // Recarregar lista de usuários para ter dados de aprovadores atualizados
-                    const r = await fetch(App.urls.u + "?t=" + Date.now());
-                    const t = await r.text();
-                    const lines = t.split('\n').filter(l => l.trim());
-                    const sep = t.includes(';') ? ';' : ',';
-                    const head = lines[0].split(sep).map(h => h.trim().toUpperCase());
-                    App.users = lines.slice(1).map(l => {
-                        let o = {}, c = l.split(sep);
-                        head.forEach((h, i) => o[h] = c[i]?.trim());
-                        return o;
-                    });
-                    
-                    await this.loadStock();
-                    UI.build();
-                }
-            },
+alert("OSM criada!");
+App.cart=[];
+this.render();
+osm-id.value="";
+Router.go("scr-menu");
+}
+};
 
-            logout() {
-                localStorage.removeItem('session_fastrequest');
-                location.reload();
-            },
+/* ================= PEDIDOS ================= */
+const Pedido={
+meus(){
+const m=App.osms.filter(o=>o.solicitante===App.user.MATRICULA);
+console.clear();
+console.log("OSMs:",m);
+alert("Veja no console (F12)");
+}
+};
 
-            async loadStock() {
-                try {
-                    const r = await fetch(App.urls.s);
-                    const ab = await r.arrayBuffer();
-                    const wb = XLSX.read(ab, {type: 'array'});
-                    const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                    App.stock = raw.map(i => ({
-                        sap: i["Material"]?.toString(), 
-                        desc: i["Texto breve material"],
-                        saldo: parseFloat(i["Utilização livre"]), 
-                        centro: i["Centro"]?.toString()
-                    })).filter(i => i.centro === App.user.CENTRO && i.saldo > 0);
-                } catch(e) { console.error("Erro ao carregar estoque"); }
-            }
-        };
+/* ================= ROUTER ================= */
+const Router={
+go(id){
+document.querySelectorAll(".screen").forEach(
+s=>s.classList.remove("active")
+);
+document.getElementById(id).classList.add("active");
+}
+};
 
-        const UI = {
-            build() {
-                const perf = App.user.PERFIL.toUpperCase();
-                document.getElementById('ui-greeting').innerText = `Olá, ${App.user.NOME}`;
-                document.getElementById('ui-badge').innerText = `PERFIL: ${perf} | CENTRO: ${App.user.CENTRO}`;
-                
-                // Resetar visibilidade dos cards
-                document.querySelectorAll('.nav-card').forEach(c => c.classList.add('hidden'));
+/* ================= START ================= */
+window.onload=()=>{
+const s=localStorage.getItem("session");
+if(s){
+App.user=JSON.parse(s);
+App.osms=JSON.parse(localStorage.getItem("base_osm"))||[];
+UI.build();
+}
+};
+</script>
 
-                // Regras de Perfil
-                if(perf.includes('ADMINISTRADOR') || perf === 'ADM') {
-                    document.querySelectorAll('.p-adm').forEach(c => c.classList.remove('hidden'));
-                } else if(perf.includes('APROVADOR')) {
-                    document.querySelectorAll('.p-aprov').forEach(c => c.classList.remove('hidden'));
-                } else {
-                    document.querySelectorAll('.p-solic').forEach(c => c.classList.remove('hidden'));
-                }
-
-                this.setupOSM();
-                Router.go('scr-menu');
-            },
-            setupOSM() {
-                const aprs = App.users.filter(u => (u.PERFIL.includes('APROVADOR') || u.PERFIL.includes('ADM')) && u.CENTRO === App.user.CENTRO);
-                document.getElementById('sel-aprovador').innerHTML = `<option value="">Selecione...</option>` + 
-                    aprs.map(a => `<option value="${a.NOME}">${a.NOME}</option>`).join('');
-            }
-        };
-
-        const OSM = {
-            sync() {
-                const n = document.getElementById('sel-aprovador').value;
-                const a = App.users.find(u => u.NOME === n);
-                document.getElementById('osm-mat-aprov').value = a ? a.MATRICULA : "";
-            },
-            search(v) {
-                const p = document.getElementById('search-pop');
-                p.innerHTML = "";
-                if(v.length < 2) { p.style.display="none"; return; }
-                const m = App.stock.filter(i => i.sap.includes(v) || i.desc.toLowerCase().includes(v.toLowerCase()));
-                m.slice(0,5).forEach(i => {
-                    const d = document.createElement('div');
-                    d.className = 'item-row'; d.innerText = `${i.sap} - ${i.desc} (${i.saldo})`;
-                    d.onclick = () => {
-                        App.itemActive = i;
-                        document.getElementById('search-in').value = i.sap;
-                        p.style.display="none";
-                        document.getElementById('add-label').innerText = i.desc;
-                        document.getElementById('add-panel').classList.remove('hidden');
-                    };
-                    p.appendChild(d);
-                });
-                p.style.display = m.length ? "block" : "none";
-            },
-            add() {
-                const q = parseFloat(document.getElementById('add-qtd').value);
-                if(!q || q > App.itemActive.saldo) return alert("Qtd inválida ou acima do saldo!");
-                App.cart.push({...App.itemActive, qtd: q, pat: document.getElementById('add-pat').value || "N/A"});
-                this.render();
-                document.getElementById('add-panel').classList.add('hidden');
-                document.getElementById('search-in').value = "";
-                document.getElementById('add-qtd').value = "";
-            },
-            render() {
-                document.getElementById('cart-list').innerHTML = App.cart.map((i, idx) => `
-                    <div class="cart-item">
-                        <span><b>${i.sap}</b> - ${i.qtd} un<br><small>${i.pat}</small></span>
-                        <i class="fas fa-trash" onclick="App.cart.splice(${idx},1);OSM.render()"></i>
-                    </div>`).join('');
-            },
-            finalize() {
-                if(!App.cart.length) return alert("Adicione itens!");
-                alert("Requisição enviada ao aprovador! Status: AGUARDANDO APROVAÇÃO");
-                App.cart = []; this.render(); Router.go('scr-menu');
-            }
-        };
-
-        const Tool = {
-            calc(m) {
-                const f = parseFloat(document.getElementById('c-fator').value);
-                if(m === 1) document.getElementById('c-k').value = (document.getElementById('c-m').value * f).toFixed(3);
-                else document.getElementById('c-m').value = (document.getElementById('c-k').value / f).toFixed(2);
-            }
-        };
-
-        const Router = { go(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); } };
-
-        // Inicialização: Verifica se já está logado
-        window.onload = () => Auth.checkSession();
-    </script>
 </body>
 </html>
