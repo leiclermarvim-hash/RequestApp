@@ -1,55 +1,44 @@
-export default async function handler(req, res) {
-  // Configuração de CORS para evitar que o navegador bloqueie a resposta
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+const fs = require('fs');
+const path = require('path');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  const { usuario, senha } = req.body;
-  // Link simplificado (mais estável)
-  const URL_CSV = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/configuracoes/usuarios.csv";
-
-  try {
-    const response = await fetch(URL_CSV);
-    
-    if (!response.ok) {
-      return res.status(404).json({ error: "Arquivo CSV não encontrado no GitHub" });
+export default function handler(req, res) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Método não permitido' });
     }
 
-    const textoCsv = await response.text();
+    const { matricula, senha } = JSON.parse(req.body);
 
-    // Divide por linhas e remove linhas totalmente vazias (evita o travamento)
-    const linhas = textoCsv.split(/\r?\n/).filter(l => l.trim() !== "");
-    
-    const separador = textoCsv.includes(';') ? ';' : ',';
-    
-    const usuarios = linhas.slice(1).map(linha => {
-      const valores = linha.split(separador);
-      return {
-        matricula: valores[0]?.trim() || "",
-        senha: valores[1]?.trim() || "",
-        nome: valores[2]?.trim() || "",
-        perfil: valores[3]?.trim() || "",
-        centro: valores[4]?.trim() || ""
-      };
-    });
+    try {
+        // Caminho para o seu CSV (ajuste conforme a árvore da imagem)
+        const csvPath = path.join(process.cwd(), 'configuracoes', 'usuarios.csv');
+        const csvData = fs.readFileSync(csvPath, 'utf8');
 
-    // Comparação rigorosa
-    const userEncontrado = usuarios.find(u => 
-      u.matricula === usuario?.toString().trim() && 
-      u.senha === senha?.toString().trim()
-    );
+        // Quebra as linhas e ignora o cabeçalho
+        const linhas = csvData.split('\n').slice(1);
+        
+        let usuarioEncontrado = null;
 
-    if (userEncontrado) {
-      return res.status(200).json({ authenticated: true, user: userEncontrado });
-    } else {
-      return res.status(401).json({ authenticated: false, message: "Usuário ou senha inválidos" });
+        for (let linha of linhas) {
+            // matricula, senha, nome, perfil, centro
+            const [u_mat, u_pass, u_nome, u_perfil, u_centro] = linha.split(',');
+
+            if (u_mat?.trim() === matricula?.trim() && u_pass?.trim() === senha?.trim()) {
+                usuarioEncontrado = {
+                    matricula: u_mat.trim(),
+                    nome: u_nome.trim(),
+                    perfil: u_perfil.trim().toLowerCase(),
+                    centro: u_centro.trim()
+                };
+                break;
+            }
+        }
+
+        if (usuarioEncontrado) {
+            res.status(200).json({ authenticated: true, user: usuarioEncontrado });
+        } else {
+            res.status(401).json({ authenticated: false, message: "Credenciais inválidas" });
+        }
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao ler base de usuários", details: error.message });
     }
-  } catch (error) {
-    console.error("Erro na API:", error);
-    return res.status(500).json({ error: "Erro interno no servidor da Vercel" });
-  }
 }
