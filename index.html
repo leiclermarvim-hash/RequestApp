@@ -2,275 +2,210 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>FAST REQUEST PRO - V16.2</title>
+    <title>FAST REQUEST PRO</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
         :root {
             --bg1:#0a0f2c; --bg2:#020417; --glass:rgba(255,255,255,.08);
-            --accent:#00ffe0; --primary:#0066ff; --danger:#ff4444; --warning:#ffcc00;
+            --accent:#00ffe0; --primary:#0066ff; --danger:#ff4444;
         }
-        * { box-sizing:border-box; }
-        body{
-            margin:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background:radial-gradient(circle at top,var(--bg1),var(--bg2));
-            color:#fff; min-height: 100vh;
+        * { box-sizing:border-box; transition: all 0.3s ease; }
+        body {
+            margin:0; font-family: 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at top, var(--bg1), var(--bg2));
+            color:#fff; min-height: 100vh; overflow-x: hidden;
         }
-        
-        /* Estrutura de Telas */
-        .screen{ display:none; min-height:100vh; justify-content:center; align-items:center; padding: 20px; }
-        .screen.active{ display:flex; flex-direction: column; }
-        
-        /* Componentes UI */
-        .card{
-            width:100%; max-width:400px; padding:30px; border-radius:20px;
-            background:var(--glass); backdrop-filter: blur(15px); text-align:center;
-            box-shadow:0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
-        }
-        input, button{ width:100%; padding:14px; margin-top:12px; border:none; border-radius:12px; font-size:15px; outline: none; }
-        input { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
-        button{ background:linear-gradient(135deg,var(--accent),var(--primary)); font-weight:700; cursor:pointer; color:#000; }
-        
-        /* Menu Grid */
-        .menu-container { width: 100%; max-width: 600px; }
-        .menu-grid{ display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top: 20px; }
-        
-        /* Listagens (Pai e Filho) */
-        .lista-container { margin-top:20px; width: 100%; max-height:400px; overflow-y:auto; padding-right: 5px; }
-        .item-card { 
-            padding:15px; background:rgba(255,255,255,0.05); border-radius:12px; 
-            margin-bottom:10px; border-left: 4px solid var(--accent); text-align: left;
-        }
-        
-        .badge { font-size: 10px; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; font-weight: bold; }
-        .badge-perfil { background: var(--accent); color: #000; }
-        .badge-centro { background: rgba(255,255,255,0.2); color: #fff; margin-left: 5px; }
 
-        footer{ position:fixed; bottom:10px; width:100%; text-align:center; font-size:11px; color:#aaa; opacity: 0.6; }
+        /* Estrutura de Telas */
+        .screen { display:none; min-height:100vh; flex-direction: column; align-items:center; padding: 20px; }
+        .screen.active { display:flex; }
+
+        /* Card de Login */
+        .card-login {
+            margin-top: 10vh; width:100%; max-width:350px; padding:40px; 
+            background:var(--glass); backdrop-filter: blur(15px); border-radius:25px;
+            border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        /* Menu Grid */
+        .menu-container { width: 100%; max-width: 500px; text-align: center; }
+        .menu-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
+
+        input, button { width:100%; padding:14px; margin-top:12px; border:none; border-radius:12px; font-size:15px; outline:none; }
+        input { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.05); }
+        button { background: linear-gradient(135deg, var(--accent), var(--primary)); font-weight:700; cursor:pointer; color:#000; }
+        button:hover { transform: translateY(-2px); opacity: 0.9; }
+
+        /* Estilo de Itens de Lista */
+        .lista-scroll { width: 100%; max-height: 400px; overflow-y: auto; margin-top: 20px; padding-right: 5px; }
+        .item-row { 
+            background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; 
+            margin-bottom: 10px; border-left: 4px solid var(--accent); text-align: left;
+        }
+
+        .user-info { margin-bottom: 20px; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .badge { font-size: 10px; padding: 3px 8px; border-radius: 5px; background: var(--accent); color: #000; font-weight: bold; }
     </style>
 </head>
-
 <body>
 
-    <!-- 1. TELA DE LOGIN -->
-    <div id="screen-login" class="screen active">
-        <div class="card">
-            <h2 style="margin-bottom:5px;">FAST REQUEST PRO</h2>
-            <p style="font-size:12px; color:var(--accent); margin-bottom:20px;">SISTEMA DE SOLICITAÇÕES</p>
-            <input id="login_mat" type="text" placeholder="Matrícula">
-            <input id="login_pass" type="password" placeholder="Senha">
-            <button id="btn-login" onclick="executarLogin()">Entrar no Sistema</button>
+    <div id="scr-login" class="screen active">
+        <div class="card-login">
+            <h2>FAST REQUEST</h2>
+            <p style="color:var(--accent); font-size: 12px;">PRO V16.2</p>
+            <input id="f_mat" type="text" placeholder="Matrícula">
+            <input id="f_pass" type="password" placeholder="Senha">
+            <button onclick="handleLogin()">Acessar</button>
         </div>
     </div>
 
-    <!-- 2. TELA DE MENU PRINCIPAL -->
-    <div id="screen-menu" class="screen">
+    <div id="scr-menu" class="screen">
         <div class="menu-container">
-            <div id="user-header" style="text-align: center; margin-bottom: 30px;">
-                <h3 id="display-nome" style="margin:0;"></h3>
-                <span id="display-perfil" class="badge badge-perfil"></span>
-                <span id="display-centro" class="badge badge-centro"></span>
+            <div class="user-info">
+                <h3 id="u_nome" style="margin:0;"></h3>
+                <span id="u_perfil" class="badge"></span>
+                <span id="u_centro" class="badge" style="background:rgba(255,255,255,0.2); color:#fff;"></span>
             </div>
             
-            <div id="grid-modulos" class="menu-grid">
-                <!-- Injetado via JavaScript de acordo com o perfil -->
-            </div>
-            
-            <button onclick="location.reload()" style="margin-top:40px; background:transparent; color:var(--danger); border:1px solid var(--danger);">Sair / Logoff</button>
+            <div id="grid-main" class="menu-grid">
+                </div>
+
+            <button onclick="location.reload()" style="background:transparent; color:var(--danger); border:1px solid var(--danger); margin-top:40px;">Sair</button>
         </div>
     </div>
 
-    <!-- 3. TELA DE MÓDULO (OSM / PROGRAMADA / ESTOQUE) -->
-    <div id="screen-modulo" class="screen">
+    <div id="scr-operacao" class="screen">
         <div class="menu-container">
-            <h3 id="modulo-titulo">Módulo</h3>
-            <input type="text" id="input-busca" placeholder="Pesquisar material..." oninput="logicaFiltroEstoque()">
-            
-            <div id="lista-modulo" class="lista-container"></div>
-            
-            <button onclick="mudarTela('screen-menu')" style="background:#444; color:#fff; margin-top:20px;">Voltar ao Menu</button>
+            <h3 id="mod-titulo">Módulo</h3>
+            <input type="text" id="mod-busca" placeholder="Filtrar por código ou descrição..." oninput="renderizarEstoque()">
+            <div id="mod-lista" class="lista-scroll"></div>
+            <button onclick="mudarTela('scr-menu')" style="background:#333; color:#fff; margin-top:20px;">Voltar</button>
         </div>
     </div>
-
-    <!-- 4. TELA DE SOLICITAÇÕES (HISTÓRICO / APROVAÇÃO) -->
-    <div id="screen-solicitacoes" class="screen">
-        <div class="menu-container">
-            <h3 id="solic-titulo">Solicitações</h3>
-            <div id="lista-pedidos" class="lista-container"></div>
-            <button onclick="mudarTela('screen-menu')" style="background:#444; color:#fff; margin-top:20px;">Voltar ao Menu</button>
-        </div>
-    </div>
-
-    <footer>FAST REQUEST PRO • v16.2 • © 2026</footer>
 
 <script>
-// --- ESTRUTURA DE DADOS GLOBAL ---
-const GITHUB_MB52 = "https://raw.githubusercontent.com/leiclermarvim-hash/RequestApp/main/base_dados/MB52.XLSX";
+// --- CONFIGURAÇÃO GLOBAL ---
+const PATH_ESTOQUE = "base_dados/MB52.XLSX"; 
+let state = { user: null, estoqueFull: [], filteredEstoque: [] };
 
-let appState = {
-    user: null,       // matricula, nome, perfil, centro
-    estoque: [],      // Dados do MB52 filtrados por centro
-    carrinho: [],     // Itens da solicitação atual (Filhos)
-    solicitacoes: []  // DB de pedidos (Pai)
-};
-
-// --- ESTRUTURA DE NAVEGAÇÃO ---
 function mudarTela(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
 }
 
-// --- ESTRUTURA DE AUTENTICAÇÃO E PERFIL ---
-async function executarLogin() {
-    const mat = document.getElementById('login_mat').value;
-    const pass = document.getElementById('login_pass').value;
-    const btn = document.getElementById('btn-login');
-
-    if(!mat || !pass) return alert("Preencha as credenciais!");
-    btn.innerText = "Autenticando...";
+// --- LOGICA DE AUTENTICAÇÃO ---
+async function handleLogin() {
+    const mat = document.getElementById('f_mat').value;
+    const pass = document.getElementById('f_pass').value;
 
     try {
-        // Simulação da chamada de API que retorna as 5 colunas
-        const response = await fetch('/api/login', {
+        // Chamada para sua API Vercel
+        const res = await fetch('/api/login', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ matricula: mat, senha: pass })
         });
-        const res = await response.json();
+        const data = await res.json();
 
-        if(res.authenticated) {
-            // Mapeia os dados do banco para o estado do app
-            appState.user = {
-                nome: res.user.nome,
-                perfil: res.user.perfil.toLowerCase(),
-                centro: res.user.centro.toString().toUpperCase(),
-                matricula: res.user.matricula
-            };
-
-            renderizarMenuPorPerfil();
-            await carregarEstoqueMB52(); // Carrega filtrando pelo centro do usuário
-            mudarTela('screen-menu');
+        if (data.authenticated) {
+            state.user = data.user; // {nome, perfil, centro, matricula}
+            setupUI();
+            await loadEstoque();
+            mudarTela('scr-menu');
         } else {
-            alert("Usuário não encontrado.");
-            btn.innerText = "Entrar no Sistema";
+            alert("Credenciais inválidas");
         }
-    } catch(e) {
-        alert("Erro de conexão com servidor de usuários.");
-        btn.innerText = "Entrar no Sistema";
+    } catch (e) {
+        alert("Erro ao conectar com a API de login.");
     }
 }
 
-// --- ESTRUTURA DE HIERARQUIA DE ACESSO ---
-function renderizarMenuPorPerfil() {
-    const grid = document.getElementById('grid-modulos');
-    const nomeDisp = document.getElementById('display-nome');
-    const perfilDisp = document.getElementById('display-perfil');
-    const centroDisp = document.getElementById('display-centro');
+// --- UI DINÂMICA POR PERFIL ---
+function setupUI() {
+    document.getElementById('u_nome').innerText = state.user.nome;
+    document.getElementById('u_perfil').innerText = state.user.perfil.toUpperCase();
+    document.getElementById('u_centro').innerText = "Centro: " + state.user.centro;
 
-    nomeDisp.innerText = appState.user.nome;
-    perfilDisp.innerText = appState.user.perfil;
-    centroDisp.innerText = `Centro: ${appState.user.centro}`;
-    
+    const grid = document.getElementById('grid-main');
     grid.innerHTML = "";
 
-    // Definição de permissões por perfil
     const modulos = {
         solicitante: [
-            { n: "📋 Gerar OSM", c: () => abrirModulo('OSM') },
-            { n: "📆 Gerar Programada", c: () => abrirModulo('PROGRAMADA') },
-            { n: "🔁 Conversor", c: () => alert("Módulo Conversor") },
-            { n: "📂 Solicitações", c: () => abrirSolicitacoes("Minhas Solicitações") }
+            { label: "📋 Gerar OSM", icon: "OSM", cmd: () => abrirMod("Gerar OSM") },
+            { label: "📆 Gerar Programada", icon: "PROG", cmd: () => abrirMod("Gerar Programada") },
+            { label: "🔁 Conversor", icon: "CONV", cmd: () => alert("Conversor") },
+            { label: "📂 Solicitações", icon: "SOL", cmd: () => alert("Minhas Solicitações") }
         ],
         aprovador: [
-            { n: "📋 Criar OSM", c: () => abrirModulo('OSM') },
-            { n: "📆 Criar Programada", c: () => abrirModulo('PROGRAMADA') },
-            { n: "📂 Solicitações Recebidas", c: () => abrirSolicitacoes("Pedidos para Aprovar") }
+            { label: "✅ Pedidos Recebidos", icon: "APR", cmd: () => alert("Aprovações") },
+            { label: "📋 Criar OSM", icon: "OSM", cmd: () => abrirMod("Criar OSM") },
+            { label: "📆 Criar Programadas", icon: "PROG", cmd: () => abrirMod("Criar Programada") }
         ],
         administrador: [
-            { n: "📊 Dashboard Gestor", c: () => alert("Painel Administrativo") },
-            { n: "👥 Gestão Usuários", c: () => alert("Cadastro de Pessoal") },
-            { n: "⚙️ Configurações", c: () => alert("Configurações") },
-            { n: "📂 Todas Solicitações", c: () => abrirSolicitacoes("Gestão Global") }
+            { label: "📊 Gestão Total", icon: "ADM", cmd: () => alert("Painel ADM") },
+            { label: "⚙️ Configurações", icon: "CFG", cmd: () => alert("Config") }
         ]
     };
 
-    const meusModulos = modulos[appState.user.perfil] || [];
-    meusModulos.forEach(m => {
+    const meusBotoes = modulos[state.user.perfil.toLowerCase()] || [];
+    meusBotoes.forEach(m => {
         const btn = document.createElement('button');
-        btn.innerText = m.n;
-        btn.onclick = m.c;
+        btn.innerHTML = m.label;
+        btn.onclick = m.cmd;
         grid.appendChild(btn);
     });
 }
 
-// --- ESTRUTURA DE FILTRO POR CENTRO (MB52) ---
-async function carregarEstoqueMB52() {
+// --- GESTÃO DE ESTOQUE (FILTRO POR CENTRO) ---
+async function loadEstoque() {
     try {
-        const response = await fetch(GITHUB_MB52 + "?t=" + new Date().getTime());
-        const data = await response.arrayBuffer();
+        const response = await fetch(PATH_ESTOQUE);
+        const arrayBuffer = await response.arrayBuffer();
+        const data = new Uint8Array(arrayBuffer);
         const workbook = XLSX.read(data, { type: 'array' });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet);
+        const rawJson = XLSX.utils.sheet_to_json(sheet);
 
-        // FILTRO CRÍTICO: Filtra o estoque apenas para o CENTRO do usuário logado
-        appState.estoque = json.filter(item => {
-            const centroItem = item["Centro"]?.toString().toUpperCase();
-            return centroItem === appState.user.centro;
-        }).map(item => ({
-            codigo: item["Material"],
-            descricao: item["Texto breve material"],
-            saldo: item["Utilização livre"],
-            unidade: item["Unid.medida básica"],
-            deposito: item["Depósito"]
-        }));
-
-        console.log(`Estoque carregado para centro ${appState.user.centro}: ${appState.estoque.length} itens.`);
-    } catch(e) {
-        console.error("Erro ao processar MB52:", e);
+        // FILTRAGEM POR CENTRO DO USUÁRIO
+        state.estoqueFull = rawJson.filter(item => {
+            return item["Centro"]?.toString() === state.user.centro.toString();
+        });
+    } catch (e) {
+        console.error("Erro ao carregar MB52:", e);
     }
 }
 
-// --- ESTRUTURA DE FUNCIONALIDADES (MODULOS) ---
-function abrirModulo(tipo) {
-    document.getElementById('modulo-titulo').innerText = "Módulo: " + tipo;
-    mudarTela('screen-modulo');
-    logicaFiltroEstoque();
+function abrirMod(titulo) {
+    document.getElementById('mod-titulo').innerText = titulo;
+    mudarTela('scr-operacao');
+    renderizarEstoque();
 }
 
-function logicaFiltroEstoque() {
-    const busca = document.getElementById('input-busca').value.toLowerCase();
-    const lista = document.getElementById('lista-modulo');
+function renderizarEstoque() {
+    const busca = document.getElementById('mod-busca').value.toLowerCase();
+    const lista = document.getElementById('mod-lista');
     lista.innerHTML = "";
 
-    const filtrados = appState.estoque.filter(i => 
-        i.codigo?.toString().toLowerCase().includes(busca) || 
-        i.descricao?.toLowerCase().includes(busca)
+    const filtrados = state.estoqueFull.filter(i => 
+        i["Material"]?.toString().toLowerCase().includes(busca) || 
+        i["Texto breve material"]?.toLowerCase().includes(busca)
     );
 
-    filtrados.slice(0, 30).forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'item-card';
-        div.innerHTML = `
-            <div style="font-weight:bold; color:var(--accent);">${item.codigo}</div>
-            <div style="font-size:13px; margin:4px 0;">${item.descricao}</div>
-            <div style="font-size:12px; opacity:0.8;">Saldo: ${item.saldo} ${item.unidade} | Dep: ${item.deposito}</div>
-            <button onclick="adicionarItem('${item.codigo}')" style="padding:5px; font-size:10px; width:auto; margin-top:10px;">+ Adicionar</button>
+    filtrados.slice(0, 50).forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        row.innerHTML = `
+            <div style="font-weight:bold; color:var(--accent);">${item["Material"]}</div>
+            <div style="font-size:13px; margin:5px 0;">${item["Texto breve material"]}</div>
+            <div style="font-size:11px; opacity:0.7;">
+                Saldo: <b>${item["Utilização livre"]}</b> ${item["Unid.medida básica"]} | Dep: ${item["Depósito"]}
+            </div>
         `;
-        lista.appendChild(div);
+        lista.appendChild(row);
     });
 }
-
-function abrirSolicitacoes(titulo) {
-    document.getElementById('solic-titulo').innerText = titulo;
-    mudarTela('screen-solicitacoes');
-    // Aqui seria carregada a lista de pedidos do banco de dados (Pai e Filho)
-}
-
-function adicionarItem(codigo) {
-    alert("Item " + codigo + " adicionado ao rascunho da solicitação!");
-}
-
 </script>
 </body>
 </html>
