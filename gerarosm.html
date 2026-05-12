@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>FAST REQUEST PRO</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- SheetJS para leitura de Excel -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+:root {
+  --bg1:#0a0f2c;
+  --bg2:#020417;
+  --glass:rgba(255,255,255,.08);
+  --accent:#00ffe0;
+  --primary:#0066ff;
+}
+
+* { box-sizing:border-box; }
+
+body{
+  margin:0;
+  font-family:Segoe UI,Roboto,sans-serif;
+  background:radial-gradient(circle at top,var(--bg1),var(--bg2));
+  color:#fff;
+}
+
+.screen{
+  display:none;
+  height:100vh;
+  justify-content:center;
+  align-items:center;
+}
+.screen.active{ display:flex; }
+
+.card{
+  width:90%;
+  max-width:380px;
+  padding:30px;
+  border-radius:20px;
+  background:var(--glass);
+  backdrop-filter: blur(14px);
+  text-align:center;
+  box-shadow:0 0 30px rgba(0,255,255,.25);
+}
+
+input,button{
+  width:100%;
+  padding:14px;
+  margin-top:10px;
+  border:none;
+  border-radius:12px;
+  font-size:15px;
+}
+
+button{
+  background:linear-gradient(135deg,var(--accent),var(--primary));
+  font-weight:700;
+  cursor:pointer;
+  color:#000;
+}
+
+.menu{
+  width:90%;
+  max-width:600px;
+}
+
+.menu h3{
+  text-align:center;
+  margin-bottom:20px;
+}
+
+.menu-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+}
+
+.menu-grid button{
+  padding:22px;
+}
+
+footer{
+  position:fixed;
+  bottom:10px;
+  width:100%;
+  text-align:center;
+  font-size:11px;
+  color:#aaa;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen active">
+  <div class="card">
+    <h2>FAST REQUEST PRO</h2>
+    <p>Autenticação Vecel</p>
+    <input id="login_mat" placeholder="Matrícula">
+    <input id="login_pass" type="password" placeholder="Senha">
+    <button onclick="login()">Entrar</button>
+  </div>
+</div>
+
+<!-- ROLE -->
+<div id="screen-role" class="screen">
+  <div class="card">
+    <h3>Você é:</h3>
+    <button onclick="selecionarPerfil('solicitante')">Solicitante</button>
+    <button onclick="selecionarPerfil('atendente')">Atendente</button>
+  </div>
+</div>
+
+<!-- MENU -->
+<div id="screen-menu" class="screen">
+  <div class="menu">
+    <h3 id="infoUsuario"></h3>
+    <div class="menu-grid">
+      <button onclick="abrirOSM()">📋 OSM</button>
+      <button onclick="abrirProgramada()">📆 Programada</button>
+      <button onclick="abrirConversor()">🔁 Conversor</button>
+      <button onclick="abrirSolicitacoes()">📂 Solicitações</button>
+    </div>
+  </div>
+</div>
+
+<footer>FAST REQUEST PRO • GitHub + Vercel</footer>
+
+<script>
+// ==============================
+// CONFIGURAÇÕES
+// ==============================
+const GITHUB_USUARIOS =
+ "https://raw.githubusercontent.com/leiclermarvim/fast-request-data/main/configuracoes/usuarios.json";
+
+const GITHUB_ESTOQUE =
+ "https://raw.githubusercontent.com/leiclermarvim/fast-request-data/main/base_dados/estoque.xlsx";
+
+// ==============================
+// ESTADO GLOBAL
+// ==============================
+let appState = {
+  usuario:null,
+  perfil:null,
+  centro:null,
+  estoque:[]
+};
+
+// ==============================
+// CONTROLE DE TELAS
+// ==============================
