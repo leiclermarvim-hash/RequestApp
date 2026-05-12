@@ -2,27 +2,39 @@ const fs = require('fs');
 const path = require('path');
 
 export default function handler(req, res) {
+    // 1. Bloqueia métodos que não sejam POST
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Método não permitido' });
     }
 
-    const { matricula, senha } = JSON.parse(req.body);
-
     try {
-        // Caminho para o seu CSV (ajuste conforme a árvore da imagem)
+        // 2. Tratamento do corpo da requisição (Vercel pode enviar como objeto ou string)
+        const corpo = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+        const { matricula, senha } = corpo;
+
+        // 3. Caminho para o CSV
         const csvPath = path.join(process.cwd(), 'configuracoes', 'usuarios.csv');
+        
+        if (!fs.existsSync(csvPath)) {
+            return res.status(500).json({ error: "Arquivo de usuários não encontrado no servidor." });
+        }
+
         const csvData = fs.readFileSync(csvPath, 'utf8');
 
-        // Quebra as linhas e ignora o cabeçalho
-        const linhas = csvData.split('\n').slice(1);
+        // 4. Quebra as linhas e remove linhas vazias ou espaços extras
+        const linhas = csvData.split(/\r?\n/).filter(line => line.trim() !== "");
+        
+        // Remove o cabeçalho
+        const dadosUsuarios = linhas.slice(1);
         
         let usuarioEncontrado = null;
 
-        for (let linha of linhas) {
-            // matricula, senha, nome, perfil, centro
-            const [u_mat, u_pass, u_nome, u_perfil, u_centro] = linha.split(',');
+        for (let linha of dadosUsuarios) {
+            // 5. AJUSTE CRÍTICO: Usando ";" como separador conforme sua base
+            const [u_mat, u_pass, u_nome, u_perfil, u_centro] = linha.split(';');
 
-            if (u_mat?.trim() === matricula?.trim() && u_pass?.trim() === senha?.trim()) {
+            // 6. Comparação rigorosa removendo espaços em branco
+            if (u_mat?.trim() === matricula?.toString().trim() && u_pass?.trim() === senha?.toString().trim()) {
                 usuarioEncontrado = {
                     matricula: u_mat.trim(),
                     nome: u_nome.trim(),
@@ -36,9 +48,13 @@ export default function handler(req, res) {
         if (usuarioEncontrado) {
             res.status(200).json({ authenticated: true, user: usuarioEncontrado });
         } else {
-            res.status(401).json({ authenticated: false, message: "Credenciais inválidas" });
+            res.status(401).json({ authenticated: false, message: "Matrícula ou senha incorretos." });
         }
+
     } catch (error) {
-        res.status(500).json({ error: "Erro ao ler base de usuários", details: error.message });
+        res.status(500).json({ 
+            error: "Erro no processamento do login", 
+            details: error.message 
+        });
     }
 }
