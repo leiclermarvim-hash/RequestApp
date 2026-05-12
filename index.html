@@ -4,13 +4,12 @@
     <meta charset="UTF-8">
     <title>FAST REQUEST PRO - V16.2</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Biblioteca para processar o Excel MB52 -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
         :root {
             --bg1:#0a0f2c; --bg2:#020417; --glass:rgba(255,255,255,.08);
-            --accent:#00ffe0; --primary:#0066ff; --danger:#ff4444;
+            --accent:#00ffe0; --primary:#0066ff; --danger:#ff4444; --warning:#ffcc00;
         }
         * { box-sizing:border-box; transition: all 0.2s ease; }
         body {
@@ -19,11 +18,10 @@
             color:#fff; min-height: 100vh;
         }
 
-        /* Estrutura de Telas */
         .screen { display:none; min-height:100vh; flex-direction: column; align-items:center; padding: 20px; }
         .screen.active { display:flex; }
 
-        /* Card de Login */
+        /* Login */
         .card-login {
             margin-top: 15vh; width:100%; max-width:350px; padding:40px; 
             background:var(--glass); backdrop-filter: blur(15px); border-radius:25px;
@@ -31,7 +29,7 @@
             text-align: center;
         }
 
-        /* Menu Grid */
+        /* Menu */
         .menu-container { width: 100%; max-width: 500px; text-align: center; }
         .menu-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
 
@@ -39,17 +37,22 @@
         input { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
         button { background: linear-gradient(135deg, var(--accent), var(--primary)); font-weight:700; cursor:pointer; color:#000; }
 
-        /* Lista de Estoque */
-        .lista-scroll { width: 100%; max-height: 450px; overflow-y: auto; margin-top: 20px; }
+        /* Listagem e Carrinho */
+        .lista-scroll { width: 100%; max-height: 400px; overflow-y: auto; margin-top: 20px; }
         .item-card { 
             background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; 
             margin-bottom: 12px; border-left: 4px solid var(--accent); text-align: left;
         }
+        
+        .carrinho-bar {
+            position: fixed; bottom: 20px; width: 90%; max-width: 460px;
+            background: var(--primary); color: white; padding: 15px;
+            border-radius: 15px; display: none; justify-content: space-between; align-items: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
 
-        .user-header { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .badge { font-size: 10px; padding: 4px 10px; border-radius: 6px; font-weight: bold; }
         .badge-perfil { background: var(--accent); color: #000; }
-        .badge-centro { background: rgba(255,255,255,0.2); color: #fff; margin-left: 5px; }
     </style>
 </head>
 <body>
@@ -58,65 +61,69 @@
     <div id="scr-login" class="screen active">
         <div class="card-login">
             <h2>FAST REQUEST</h2>
-            <p style="color:var(--accent); font-size: 11px;">PRO V16.2</p>
+            <p style="color:var(--accent); font-size: 11px;">SISTEMA LOGÍSTICO</p>
             <input id="f_mat" type="text" placeholder="Matrícula">
             <input id="f_pass" type="password" placeholder="Senha">
             <button id="btn-entrar" onclick="handleLogin()">ENTRAR</button>
         </div>
     </div>
 
-    <!-- TELA: MENU PRINCIPAL -->
+    <!-- TELA: MENU -->
     <div id="scr-menu" class="screen">
         <div class="menu-container">
-            <div class="user-header">
-                <h3 id="u_nome" style="margin:0 0 10px 0;"></h3>
+            <div style="margin-bottom: 30px;">
+                <h3 id="u_nome" style="margin:0;"></h3>
                 <span id="u_perfil" class="badge badge-perfil"></span>
-                <span id="u_centro" class="badge badge-centro"></span>
+                <span id="u_centro" class="badge" style="background:rgba(255,255,255,0.1);"></span>
             </div>
-            
             <div id="grid-modulos" class="menu-grid"></div>
-
-            <button onclick="location.reload()" style="background:transparent; color:var(--danger); border:1px solid var(--danger); margin-top:50px;">SAIR</button>
+            <button onclick="location.reload()" style="background:transparent; color:var(--danger); border:1px solid var(--danger); margin-top:40px;">SAIR</button>
         </div>
     </div>
 
-    <!-- TELA: OPERAÇÃO (OSM/ESTOQUE) -->
+    <!-- TELA: OPERAÇÃO -->
     <div id="scr-operacao" class="screen">
         <div class="menu-container">
             <h3 id="mod-titulo">Módulo</h3>
-            <input type="text" id="mod-busca" placeholder="Pesquisar no estoque..." oninput="renderizarItens()">
+            <input type="text" id="mod-busca" placeholder="Filtrar estoque..." oninput="renderizarItens()">
             <div id="mod-lista" class="lista-scroll"></div>
-            <button onclick="mudarTela('scr-menu')" style="background:#444; color:#fff; margin-top:20px;">VOLTAR</button>
+            <button onclick="mudarTela('scr-menu')" style="background:#444; color:#fff; margin-top:10px;">VOLTAR</button>
+        </div>
+        
+        <div id="carrinho-status" class="carrinho-bar">
+            <span id="cart-count">0 itens selecionados</span>
+            <button onclick="finalizarSolicitacao()" style="width: auto; margin: 0; padding: 8px 15px; background: white;">CONCLUIR</button>
         </div>
     </div>
 
 <script>
 const PATH_MB52 = "base_dados/MB52.XLSX"; 
-let state = { user: null, estoqueFiltrado: [] };
+let state = { 
+    user: null, 
+    estoqueFiltrado: [],
+    carrinho: [] 
+};
 
 function mudarTela(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    // Esconde carrinho se voltar ao menu
+    if(id === 'scr-menu') document.getElementById('carrinho-status').style.display = 'none';
 }
 
-// --- LOGIN COM SUPORTE A JSON E RESPOSTA DA API ---
 async function handleLogin() {
     const mat = document.getElementById('f_mat').value.trim();
     const pass = document.getElementById('f_pass').value.trim();
     const btn = document.getElementById('btn-entrar');
 
-    if(!mat || !pass) return alert("Preencha os campos!");
+    btn.innerText = "VALIDANDO...";
     
-    btn.innerText = "CARREGANDO...";
-    btn.disabled = true;
-
     try {
         const res = await fetch('/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ matricula: mat, senha: pass })
         });
-
         const data = await res.json();
 
         if (data.authenticated) {
@@ -125,18 +132,15 @@ async function handleLogin() {
             await loadEstoque();
             mudarTela('scr-menu');
         } else {
-            alert("Credenciais incorretas.");
+            alert("Falha no login: " + data.message);
             btn.innerText = "ENTRAR";
-            btn.disabled = false;
         }
     } catch (e) {
-        alert("Erro ao conectar com o servidor.");
+        alert("Erro de conexão.");
         btn.innerText = "ENTRAR";
-        btn.disabled = false;
     }
 }
 
-// --- CONFIGURAÇÃO DO MENU BASEADO NO PERFIL DO CSV ---
 function setupMenu() {
     document.getElementById('u_nome').innerText = state.user.nome;
     document.getElementById('u_perfil').innerText = state.user.perfil.toUpperCase();
@@ -144,30 +148,26 @@ function setupMenu() {
 
     const grid = document.getElementById('grid-modulos');
     grid.innerHTML = "";
-
+    
     const perfil = state.user.perfil.toLowerCase();
-
-    // Estrutura de Menus por Perfil
     const menus = {
         solicitante: [
             { txt: "📋 Gerar OSM", act: () => abrirMod("Gerar OSM") },
             { txt: "📆 Gerar Programada", act: () => abrirMod("Gerar Programada") },
-            { txt: "🔁 Conversor", act: () => alert("Conversor") },
-            { txt: "📂 Solicitações", act: () => alert("Solicitações") }
+            { txt: "🔁 Conversor", act: () => alert("Módulo Conversor") },
+            { txt: "📂 Solicitações", act: () => alert("Histórico") }
         ],
         aprovador: [
-            { txt: "✅ Aprovar Pedidos", act: () => alert("Aprovações") },
-            { txt: "📋 Criar OSM", act: () => abrirMod("Criar OSM") },
-            { txt: "📆 Criar Programada", act: () => abrirMod("Criar Programada") }
+            { txt: "✅ Aprovações", act: () => alert("Pedidos Pendentes") },
+            { txt: "📋 Criar OSM", act: () => abrirMod("Criar OSM") }
         ],
         adm: [
-            { txt: "📊 Painel Geral", act: () => alert("Dashboard") },
-            { txt: "⚙️ Configurações", act: () => alert("Config") }
+            { txt: "📊 Dashboard", act: () => alert("Painel ADM") },
+            { txt: "⚙️ Config", act: () => alert("Configurações") }
         ]
     };
 
-    const botoes = menus[perfil] || [];
-    botoes.forEach(b => {
+    (menus[perfil] || []).forEach(b => {
         const btn = document.createElement('button');
         btn.innerText = b.txt;
         btn.onclick = b.act;
@@ -175,7 +175,6 @@ function setupMenu() {
     });
 }
 
-// --- FILTRO DE ESTOQUE PELO CENTRO DO USUÁRIO ---
 async function loadEstoque() {
     try {
         const response = await fetch(PATH_MB52);
@@ -184,17 +183,17 @@ async function loadEstoque() {
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const rawJson = XLSX.utils.sheet_to_json(sheet);
 
-        // Filtra o MB52 usando a coluna "Centro" e o Centro do usuário logado
-        state.estoqueFiltrado = rawJson.filter(item => {
-            return item["Centro"]?.toString().trim() === state.user.centro.toString().trim();
-        });
-    } catch (e) {
-        console.error("Erro ao carregar MB52:", e);
-    }
+        // Filtro por Centro do Usuário
+        state.estoqueFiltrado = rawJson.filter(item => 
+            item["Centro"]?.toString().trim() === state.user.centro.toString().trim()
+        );
+    } catch (e) { console.error("Erro MB52:", e); }
 }
 
 function abrirMod(titulo) {
     document.getElementById('mod-titulo').innerText = titulo;
+    state.carrinho = [];
+    atualizarCarrinhoUI();
     mudarTela('scr-operacao');
     renderizarItens();
 }
@@ -210,15 +209,52 @@ function renderizarItens() {
     );
 
     filtrados.slice(0, 30).forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'item-card';
-        div.innerHTML = `
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.innerHTML = `
             <div style="color:var(--accent); font-weight:bold;">${item["Material"]}</div>
-            <div style="font-size:13px; margin:5px 0;">${item["Texto breve material"]}</div>
+            <div style="font-size:12px; margin:4px 0;">${item["Texto breve material"]}</div>
             <div style="font-size:11px; opacity:0.7;">Saldo: ${item["Utilização livre"]} | Dep: ${item["Depósito"]}</div>
+            <button onclick="adicionarAoCarrinho('${item["Material"]}')" style="padding:5px; font-size:10px; width:auto; margin-top:8px;">+ ADICIONAR</button>
         `;
-        lista.appendChild(div);
+        lista.appendChild(card);
     });
+}
+
+// --- LÓGICA DO CARRINHO (ESTRUTURA FILHO) ---
+function adicionarAoCarrinho(codigo) {
+    const itemEstoque = state.estoqueFiltrado.find(i => i["Material"].toString() === codigo.toString());
+    const qtd = prompt(`Quantidade para o item ${codigo}:`, "1");
+    
+    if (qtd && !isNaN(qtd) && qtd > 0) {
+        state.carrinho.push({
+            material: codigo,
+            descricao: itemEstoque["Texto breve material"],
+            quantidade: qtd,
+            deposito: itemEstoque["Depósito"]
+        });
+        atualizarCarrinhoUI();
+    }
+}
+
+function atualizarCarrinhoUI() {
+    const bar = document.getElementById('carrinho-status');
+    const count = document.getElementById('cart-count');
+    
+    if (state.carrinho.length > 0) {
+        bar.style.display = 'flex';
+        count.innerText = `${state.carrinho.length} item(s) na lista`;
+    } else {
+        bar.style.display = 'none';
+    }
+}
+
+function finalizarSolicitacao() {
+    console.log("Enviando Pedido (Pai):", state.user.matricula);
+    console.log("Itens (Filhos):", state.carrinho);
+    alert(`Solicitação enviada com ${state.carrinho.length} itens para o Centro ${state.user.centro}!`);
+    state.carrinho = [];
+    mudarTela('scr-menu');
 }
 </script>
 </body>
